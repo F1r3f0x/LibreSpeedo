@@ -1,15 +1,12 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.kotlin.ksp)
 }
 
 android {
     namespace = "com.plabin.librespeedo"
-    compileSdk {
-        version = release(36) {
-            minorApiLevel = 1
-        }
-    }
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.plabin.librespeedo"
@@ -53,4 +50,18 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     debugImplementation(libs.androidx.compose.ui.tooling)
+
+    // Room Database (Local Trip Logging)
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
+    ksp(libs.androidx.room.compiler)
+
+    // Lifecycle components for Background Services
+    implementation(libs.androidx.lifecycle.service)
+
+    // Coroutines for async tasks
+    implementation(libs.kotlinx.coroutines.android)
+
+    // Android Auto Connection (for detecting when plugged into a car silently)
+    implementation(libs.androidx.car.app)
 }
