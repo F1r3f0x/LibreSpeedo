@@ -28,7 +28,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Card
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -41,6 +45,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.plabin.librespeedo.ui.theme.LibreSpeedoTheme
+import androidx.compose.ui.platform.LocalLocale
 
 /**
  * The main UI screen displaying the speedometer, compass, and GPS debug panel.
@@ -51,6 +56,7 @@ import com.plabin.librespeedo.ui.theme.LibreSpeedoTheme
 @Composable
 fun SpeedometerScreen(
     uiState: SpeedometerUiState,
+    onSettingsClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -61,7 +67,24 @@ fun SpeedometerScreen(
         verticalArrangement = Arrangement.SpaceBetween
     ) {
 
-        Text(text = "LibreSpeedo (Proto)", fontSize = 24.sp, fontWeight = FontWeight.Bold)
+        Box(modifier = Modifier.fillMaxWidth()) {
+            Text(
+                text = "LibreSpeedo (Proto)",
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.align(Alignment.Center)
+            )
+            IconButton(
+                onClick = onSettingsClick,
+                modifier = Modifier.align(Alignment.CenterEnd)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Settings,
+                    contentDescription = "Settings",
+                    tint = MaterialTheme.colorScheme.onBackground
+                )
+            }
+        }
         
         Spacer(modifier = Modifier.height(32.dp))
 
@@ -73,7 +96,7 @@ fun SpeedometerScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = String.format("%.1f", uiState.speedKmh),
+                text = String.format(LocalLocale.current.platformLocale, "%.1f", uiState.speedKmh),
                 fontSize = 80.sp,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary
@@ -95,11 +118,11 @@ fun SpeedometerScreen(
                 fontSize = 18.sp
             )
             Text(
-                text = String.format("Lat: %.5f", uiState.latitude),
+                text = String.format(LocalLocale.current.platformLocale, "Lat: %.5f", uiState.latitude),
                 fontSize = 16.sp
             )
             Text(
-                text = String.format("Lng: %.5f", uiState.longitude),
+                text = String.format(LocalLocale.current.platformLocale, "Lng: %.5f", uiState.longitude),
                 fontSize = 16.sp
             )
         }
@@ -211,7 +234,8 @@ fun SpeedometerScreenPreview() {
                 altitude = 10.5,
                 accuracy = 3.2,
                 provider = "Preview"
-            )
+            ),
+            onSettingsClick = {}
         )
     }
 }

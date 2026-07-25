@@ -67,7 +67,7 @@ class SpeedometerViewModel(application: Application) : AndroidViewModel(applicat
         
         _uiState.value = _uiState.value.copy(isTracking = true, error = null)
 
-        locationClient.getLocationUpdates(1000L)
+        locationClient.getLocationUpdates(500L)
             .catch { e ->
                 _uiState.value = _uiState.value.copy(
                     isTracking = false,
