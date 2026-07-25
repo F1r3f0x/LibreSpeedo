@@ -1,3 +1,19 @@
+/*
+ * Copyright (C) 2026 Patricio Labin Correa (f1r3f0x)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
 package com.plabin.librespeedo
 
 import android.Manifest
@@ -19,6 +35,12 @@ import com.plabin.librespeedo.ui.SpeedometerScreen
 import com.plabin.librespeedo.ui.SpeedometerViewModel
 import com.plabin.librespeedo.ui.theme.LibreSpeedoTheme
 
+/**
+ * The primary entry point for LibreSpeedo.
+ * 
+ * Handles the runtime permission requests required for location tracking and injects
+ * the [SpeedometerViewModel] into the main Jetpack Compose UI.
+ */
 class MainActivity : ComponentActivity() {
 
     private val viewModel: SpeedometerViewModel by viewModels()
@@ -54,6 +76,11 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    /**
+     * Checks if the required location permissions have been granted.
+     * If they are, it immediately instructs the ViewModel to start tracking.
+     * Otherwise, it prompts the user using the [requestPermissionLauncher].
+     */
     private fun checkPermissionsAndStart() {
         if (ContextCompat.checkSelfPermission(
                 this,

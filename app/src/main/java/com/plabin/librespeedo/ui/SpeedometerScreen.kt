@@ -1,3 +1,19 @@
+/*
+ * Copyright (C) 2026 Patricio Labin Correa (f1r3f0x)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
 package com.plabin.librespeedo.ui
 
 import androidx.compose.foundation.background
@@ -26,6 +42,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.plabin.librespeedo.ui.theme.LibreSpeedoTheme
 
+/**
+ * The main UI screen displaying the speedometer, compass, and GPS debug panel.
+ * 
+ * @param uiState The current data state emitted by the ViewModel.
+ * @param modifier An optional [Modifier] to configure the layout of the root column.
+ */
 @Composable
 fun SpeedometerScreen(
     uiState: SpeedometerUiState,
@@ -96,6 +118,11 @@ fun SpeedometerScreen(
     }
 }
 
+/**
+ * A simple compass visualizer that rotates an arrow icon based on the current heading.
+ *
+ * @param heading The current heading in degrees (0 = North).
+ */
 @Composable
 fun CompassView(heading: Float) {
     Box(
@@ -121,6 +148,10 @@ fun CompassView(heading: Float) {
     }
 }
 
+/**
+ * A debug card displaying raw metrics from the hardware sensors.
+ * Useful for validating the active location provider and sensor accuracy.
+ */
 @Composable
 fun DebugPanel(
     provider: String,
