@@ -69,7 +69,7 @@ fun SpeedometerScreen(
 
         Box(modifier = Modifier.fillMaxWidth()) {
             Text(
-                text = "LibreSpeedo (Proto)",
+                text = "LibreSpeedo",
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.align(Alignment.Center)

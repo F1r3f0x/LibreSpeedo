@@ -37,10 +37,15 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
 import com.plabin.librespeedo.data.SettingsRepository
+import com.plabin.librespeedo.ui.AboutScreen
+import com.plabin.librespeedo.ui.LicenseScreen
 import com.plabin.librespeedo.ui.SettingsScreen
 import com.plabin.librespeedo.ui.SpeedometerScreen
 import com.plabin.librespeedo.ui.SpeedometerViewModel
 import com.plabin.librespeedo.ui.theme.LibreSpeedoTheme
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 
 /**
  * The primary entry point for LibreSpeedo.
@@ -76,7 +81,7 @@ class MainActivity : ComponentActivity() {
             val isOledTheme by settingsRepository.isOledTheme.collectAsState()
             val isKeepScreenOn by settingsRepository.isKeepScreenOn.collectAsState()
             
-            var showSettings by remember { mutableStateOf(false) }
+            val navController = rememberNavController()
 
             LaunchedEffect(isKeepScreenOn) {
                 if (isKeepScreenOn) {
@@ -87,20 +92,35 @@ class MainActivity : ComponentActivity() {
             }
             
             LibreSpeedoTheme(isOledTheme = isOledTheme) {
-                if (showSettings) {
-                    SettingsScreen(
-                        isOledTheme = isOledTheme,
-                        isKeepScreenOn = isKeepScreenOn,
-                        onOledThemeChanged = { settingsRepository.setOledTheme(it) },
-                        onKeepScreenOnChanged = { settingsRepository.setKeepScreenOn(it) },
-                        onNavigateBack = { showSettings = false }
-                    )
-                } else {
-                    Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                        SpeedometerScreen(
-                            uiState = uiState,
-                            onSettingsClick = { showSettings = true },
-                            modifier = Modifier.padding(innerPadding)
+                NavHost(navController = navController, startDestination = "speedometer") {
+                    composable("speedometer") {
+                        Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                            SpeedometerScreen(
+                                uiState = uiState,
+                                onSettingsClick = { navController.navigate("settings") },
+                                modifier = Modifier.padding(innerPadding)
+                            )
+                        }
+                    }
+                    composable("settings") {
+                        SettingsScreen(
+                            isOledTheme = isOledTheme,
+                            isKeepScreenOn = isKeepScreenOn,
+                            onOledThemeChanged = { settingsRepository.setOledTheme(it) },
+                            onKeepScreenOnChanged = { settingsRepository.setKeepScreenOn(it) },
+                            onNavigateBack = { navController.popBackStack() },
+                            onNavigateToAbout = { navController.navigate("about") }
+                        )
+                    }
+                    composable("about") {
+                        AboutScreen(
+                            onNavigateBack = { navController.popBackStack() },
+                            onViewLicense = { navController.navigate("license") }
+                        )
+                    }
+                    composable("license") {
+                        LicenseScreen(
+                            onNavigateBack = { navController.popBackStack() }
                         )
                     }
                 }
