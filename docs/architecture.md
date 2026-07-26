@@ -2,6 +2,47 @@
 
 LibreSpeedo is built with modern Android development practices, emphasizing F-Droid compatibility (no proprietary Google Play Services), Kotlin Coroutines, and Jetpack Compose.
 
+## App Architecture Diagram
+```mermaid
+graph TD
+    subgraph "Hardware & OS"
+        LM[Android LocationManager]
+        SP[SharedPreferences]
+    end
+
+    subgraph "Data Layer"
+        LC[LocationClient]
+        SR[SettingsRepository]
+    end
+
+    subgraph "Presentation Layer"
+        VM[SpeedometerViewModel]
+    end
+
+    subgraph "UI Layer (Jetpack Compose)"
+        MA[MainActivity]
+        Theme[LibreSpeedoTheme]
+        SS[SpeedometerScreen]
+        SetS[SettingsScreen]
+    end
+
+    %% Data Flow
+    LM -->|Native GPS/Fused Updates| LC
+    LC -->|Flow&lt;Location&gt;| VM
+    VM -->|StateFlow&lt;SpeedometerUiState&gt;| SS
+
+    %% Settings Flow
+    SP <-->|Read/Write| SR
+    SR -->|StateFlow&lt;Boolean&gt;| MA
+    SR -->|StateFlow&lt;Boolean&gt;| Theme
+    SR -->|StateFlow&lt;Boolean&gt;| SetS
+
+    %% UI Hierarchy
+    MA --> Theme
+    Theme --> SS
+    Theme --> SetS
+```
+
 ## 1. Location Layer (Native Fused Provider)
 To maintain the app's Libre status, we do not use the proprietary `FusedLocationProviderClient` from `com.google.android.gms`. Instead, `LocationClient` relies entirely on the native `android.location.LocationManager`.
 
