@@ -88,7 +88,7 @@ class SpeedometerViewModel(application: Application) : AndroidViewModel(applicat
             .mapNotNull { name ->
                 try {
                     WidgetType.valueOf(name)
-                } catch (e: Exception) {
+                } catch (_: Exception) {
                     null
                 }
             }

@@ -44,23 +44,21 @@ class SettingsRepository(private val prefs: SharedPreferences) {
     val isEditMode: StateFlow<Boolean> = _isEditMode.asStateFlow()
 
     private val _widgetHeights = MutableStateFlow(
-        prefs.getString("widget_heights", null)?.let { str ->
-            str.split(",").mapNotNull {
-                val parts = it.split(":")
-                if (parts.size == 2) {
-                    try {
-                        parts[0] to parts[1].toInt()
-                    } catch (e: Exception) { null }
-                } else null
-            }.toMap()
-        } ?: emptyMap()
+        prefs.getString("widget_heights", null)?.split(",")?.mapNotNull {
+            val parts = it.split(":")
+            if (parts.size == 2) {
+                try {
+                    parts[0] to parts[1].toInt()
+                } catch (_: Exception) { null }
+            } else null
+        }?.toMap() ?: emptyMap()
     )
     val widgetHeights: StateFlow<Map<String, Int>> = _widgetHeights.asStateFlow()
 
     private val _speedUnit = MutableStateFlow(
         try {
             SpeedUnit.valueOf(prefs.getString("speed_unit", SpeedUnit.KMH.name) ?: SpeedUnit.KMH.name)
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             SpeedUnit.KMH
         }
     )
