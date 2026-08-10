@@ -18,7 +18,7 @@ package com.plabin.librespeedo.ui.theme
 
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
@@ -34,8 +34,8 @@ class ThemeTest {
 
     @Test
     fun oledTheme_whenEnabled_appliesPureBlackBackgroundAndSurface() {
-        var observedBackground: Color? = null
-        var observedSurface: Color? = null
+        var observedBackground: Color = Color.Unspecified
+        var observedSurface: Color = Color.Unspecified
 
         composeTestRule.setContent {
             LibreSpeedoTheme(darkTheme = true, isOledTheme = true, dynamicColor = false) {
@@ -51,7 +51,7 @@ class ThemeTest {
 
     @Test
     fun oledTheme_whenDisabled_appliesStandardSlateBackground() {
-        var observedBackground: Color? = null
+        var observedBackground: Color = Color.Unspecified
 
         composeTestRule.setContent {
             LibreSpeedoTheme(darkTheme = true, isOledTheme = false, dynamicColor = false) {
