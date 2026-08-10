@@ -5,10 +5,11 @@ LibreSpeedo is an open-source, privacy-respecting speedometer and trip logger fo
 ## Features (Prototype)
 - **Accurate Speed Tracking**: Displays live speed in km/h. (TODO: more units)
 - **Native Fused Location**: Leverages Android 12+'s native `FUSED_PROVIDER` for high accuracy without Google Play Services.
+- **Smart Fused Compass**: Fuses hardware sensors (accelerometer & magnetic field) with GPS bearing. Includes tilt-compensation for upright dashboards and a low-pass filter to eliminate jitter.
 - **Dark-Themed Dashboard**: High-contrast, night-driving friendly Jetpack Compose UI.
 - **2 widgets for now**:
   - **Compass & Coordinates**: Real-time heading and GPS positioning.
-  - **Debug Panel**: Monitor exactly which hardware provider is active, alongside altitude and accuracy metrics.
+  - **Debug Panel**: Monitor exactly which hardware provider is active, alongside altitude, accuracy metrics, and raw sensor data (accel, gyro, mag).
 
 ## Architecture & Technical Details
 See the [docs/architecture.md](docs/architecture.md) file for a deep dive into the native Location fallback logic, Kotlin Coroutines Flow implementation, and custom Material 3 theming.

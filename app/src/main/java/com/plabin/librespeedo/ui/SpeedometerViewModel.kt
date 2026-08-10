@@ -20,6 +20,7 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.plabin.librespeedo.location.LocationClient
+import com.plabin.librespeedo.sensors.SensorClient
 import com.plabin.librespeedo.utils.SpeedConverter
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -40,6 +41,17 @@ data class SpeedometerUiState(
     val altitude: Double = 0.0,
     val accuracy: Double = 0.0,
     val provider: String = "None",
+    val accelX: Float = 0f,
+    val accelY: Float = 0f,
+    val accelZ: Float = 0f,
+    val gyroX: Float = 0f,
+    val gyroY: Float = 0f,
+    val gyroZ: Float = 0f,
+    val magX: Float = 0f,
+    val magY: Float = 0f,
+    val magZ: Float = 0f,
+    val compassAzimuth: Float = 0f,
+    val gpsBearing: Float = 0f,
     val isTracking: Boolean = false,
     val error: String? = null
 )
@@ -53,6 +65,7 @@ data class SpeedometerUiState(
 class SpeedometerViewModel(application: Application) : AndroidViewModel(application) {
 
     private val locationClient = LocationClient(application)
+    private val sensorClient = SensorClient(application)
 
     private val _uiState = MutableStateFlow(SpeedometerUiState())
     val uiState: StateFlow<SpeedometerUiState> = _uiState.asStateFlow()
@@ -79,16 +92,38 @@ class SpeedometerViewModel(application: Application) : AndroidViewModel(applicat
                 val speedMs = if (location.hasSpeed()) location.speed else 0f
                 val speedKmh = SpeedConverter.msToKmh(speedMs)
                 
-                val bearing = if (location.hasBearing()) location.bearing else _uiState.value.heading
+                val newGpsBearing = if (location.hasBearing()) location.bearing else _uiState.value.gpsBearing
+                val activeHeading = if (speedKmh > 3.0f) newGpsBearing else _uiState.value.compassAzimuth
 
                 _uiState.value = _uiState.value.copy(
                     speedKmh = speedKmh,
                     latitude = location.latitude,
                     longitude = location.longitude,
-                    heading = bearing, // Fallback to GPS bearing if compass not ready
+                    gpsBearing = newGpsBearing,
+                    heading = activeHeading,
                     altitude = if (location.hasAltitude()) location.altitude else 0.0,
                     accuracy = if (location.hasAccuracy()) location.accuracy.toDouble() else 0.0,
                     provider = location.provider ?: "Unknown"
+                )
+            }
+            .launchIn(viewModelScope)
+
+        sensorClient.getSensorUpdates()
+            .onEach { sensorData ->
+                val activeHeading = if (_uiState.value.speedKmh > 3.0f) _uiState.value.gpsBearing else sensorData.azimuth
+                
+                _uiState.value = _uiState.value.copy(
+                    accelX = sensorData.accelerometer[0],
+                    accelY = sensorData.accelerometer[1],
+                    accelZ = sensorData.accelerometer[2],
+                    gyroX = sensorData.gyroscope[0],
+                    gyroY = sensorData.gyroscope[1],
+                    gyroZ = sensorData.gyroscope[2],
+                    magX = sensorData.magneticField[0],
+                    magY = sensorData.magneticField[1],
+                    magZ = sensorData.magneticField[2],
+                    compassAzimuth = sensorData.azimuth,
+                    heading = activeHeading
                 )
             }
             .launchIn(viewModelScope)

@@ -34,6 +34,17 @@ class SpeedometerUiStateTest {
         assertEquals(0.0, state.altitude, 0.0001)
         assertEquals(0.0, state.accuracy, 0.0001)
         assertEquals("None", state.provider)
+        assertEquals(0f, state.accelX, 0.001f)
+        assertEquals(0f, state.accelY, 0.001f)
+        assertEquals(0f, state.accelZ, 0.001f)
+        assertEquals(0f, state.gyroX, 0.001f)
+        assertEquals(0f, state.gyroY, 0.001f)
+        assertEquals(0f, state.gyroZ, 0.001f)
+        assertEquals(0f, state.magX, 0.001f)
+        assertEquals(0f, state.magY, 0.001f)
+        assertEquals(0f, state.magZ, 0.001f)
+        assertEquals(0f, state.compassAzimuth, 0.001f)
+        assertEquals(0f, state.gpsBearing, 0.001f)
         assertFalse(state.isTracking)
         assertNull(state.error)
     }
@@ -49,6 +60,17 @@ class SpeedometerUiStateTest {
             altitude = 560.0,
             accuracy = 2.5,
             provider = "fused",
+            accelX = 1f,
+            accelY = 2f,
+            accelZ = 3f,
+            gyroX = 4f,
+            gyroY = 5f,
+            gyroZ = 6f,
+            magX = 7f,
+            magY = 8f,
+            magZ = 9f,
+            compassAzimuth = 45f,
+            gpsBearing = 90f,
             isTracking = true,
             error = null
         )
@@ -60,6 +82,17 @@ class SpeedometerUiStateTest {
         assertEquals(560.0, updatedState.altitude, 0.0001)
         assertEquals(2.5, updatedState.accuracy, 0.0001)
         assertEquals("fused", updatedState.provider)
+        assertEquals(1f, updatedState.accelX, 0.001f)
+        assertEquals(2f, updatedState.accelY, 0.001f)
+        assertEquals(3f, updatedState.accelZ, 0.001f)
+        assertEquals(4f, updatedState.gyroX, 0.001f)
+        assertEquals(5f, updatedState.gyroY, 0.001f)
+        assertEquals(6f, updatedState.gyroZ, 0.001f)
+        assertEquals(7f, updatedState.magX, 0.001f)
+        assertEquals(8f, updatedState.magY, 0.001f)
+        assertEquals(9f, updatedState.magZ, 0.001f)
+        assertEquals(45f, updatedState.compassAzimuth, 0.001f)
+        assertEquals(90f, updatedState.gpsBearing, 0.001f)
         assertTrue(updatedState.isTracking)
         assertNull(updatedState.error)
     }

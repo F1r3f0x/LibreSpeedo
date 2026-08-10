@@ -150,6 +150,15 @@ fun SpeedometerScreen(
             heading = uiState.heading,
             altitude = uiState.altitude,
             accuracy = uiState.accuracy,
+            accelX = uiState.accelX,
+            accelY = uiState.accelY,
+            accelZ = uiState.accelZ,
+            gyroX = uiState.gyroX,
+            gyroY = uiState.gyroY,
+            gyroZ = uiState.gyroZ,
+            magX = uiState.magX,
+            magY = uiState.magY,
+            magZ = uiState.magZ,
             error = uiState.error
         )
     }
@@ -173,7 +182,7 @@ fun CompassView(heading: Float) {
             fontSize = 48.sp,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.rotate(heading)
+            modifier = Modifier.rotate(-heading)
         )
         // North indicator for the debug prototype
         Text(
@@ -198,6 +207,15 @@ fun DebugPanel(
     heading: Float,
     altitude: Double,
     accuracy: Double,
+    accelX: Float,
+    accelY: Float,
+    accelZ: Float,
+    gyroX: Float,
+    gyroY: Float,
+    gyroZ: Float,
+    magX: Float,
+    magY: Float,
+    magZ: Float,
     error: String?
 ) {
     Card(
@@ -220,6 +238,9 @@ fun DebugPanel(
             DebugRow("Heading", "$heading°")
             DebugRow("Altitude", "$altitude m")
             DebugRow("Accuracy", "±$accuracy m")
+            DebugRow("Accelerometer", String.format(LocalLocale.current.platformLocale, "%.2f, %.2f, %.2f", accelX, accelY, accelZ))
+            DebugRow("Gyroscope", String.format(LocalLocale.current.platformLocale, "%.2f, %.2f, %.2f", gyroX, gyroY, gyroZ))
+            DebugRow("Magnetic Field", String.format(LocalLocale.current.platformLocale, "%.2f, %.2f, %.2f", magX, magY, magZ))
         }
     }
 }
