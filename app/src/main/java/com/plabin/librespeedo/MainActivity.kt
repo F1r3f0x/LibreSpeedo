@@ -78,6 +78,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             val uiState by viewModel.uiState.collectAsState()
+            val activeWidgets by viewModel.activeWidgets.collectAsState()
             val isOledTheme by settingsRepository.isOledTheme.collectAsState()
             val isKeepScreenOn by settingsRepository.isKeepScreenOn.collectAsState()
             
@@ -94,13 +95,15 @@ class MainActivity : ComponentActivity() {
             LibreSpeedoTheme(isOledTheme = isOledTheme) {
                 NavHost(navController = navController, startDestination = "speedometer") {
                     composable("speedometer") {
-                        Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                            SpeedometerScreen(
-                                uiState = uiState,
-                                onSettingsClick = { navController.navigate("settings") },
-                                modifier = Modifier.padding(innerPadding)
-                            )
-                        }
+                        SpeedometerScreen(
+                            uiState = uiState,
+                            activeWidgets = activeWidgets,
+                            onReorderWidget = viewModel::reorderWidget,
+                            onAddWidget = viewModel::addWidget,
+                            onRemoveWidget = viewModel::removeWidget,
+                            onSettingsClick = { navController.navigate("settings") },
+                            modifier = Modifier.fillMaxSize()
+                        )
                     }
                     composable("settings") {
                         SettingsScreen(

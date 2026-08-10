@@ -40,6 +40,7 @@ graph TD
     SR -->|StateFlow&lt;Boolean&gt;| MA
     SR -->|StateFlow&lt;Boolean&gt;| Theme
     SR -->|StateFlow&lt;Boolean&gt;| SetS
+    VM <-->|Read/Write Layout| SR
 
     %% UI Hierarchy
     MA --> Theme
@@ -64,8 +65,8 @@ To complement GPS data, `SensorClient` tracks hardware sensors including `TYPE_A
 * **Dynamic Tilt Compensation**: The app dynamically checks the dominant axis of gravity. If the device is held upright (e.g. in a car mount), it remaps the coordinate system using `SensorManager.remapCoordinateSystem()` so the compass calculation remains 100% accurate.
 
 ## 3. Presentation Layer
-* **`SpeedometerViewModel`**: Subscribes to both the `LocationClient` and `SensorClient` Flows. It parses raw location metrics, exposes raw sensor data, and implements a **Smart Fused Bearing**: using GPS bearing when moving faster than 3 km/h, and falling back to the hardware compass azimuth when stationary or moving slowly.
-* **`SpeedometerScreen`**: A declarative Jetpack Compose UI that blindly renders the `SpeedometerUiState`. It includes a compass needle that correctly points North regardless of orientation, large speed text, and a high-contrast debug panel for monitoring raw metrics.
+* **`SpeedometerViewModel`**: Subscribes to both the `LocationClient` and `SensorClient` Flows. It parses raw location metrics, exposes raw sensor data, and implements a **Smart Fused Bearing**: using GPS bearing when moving faster than 3 km/h, and falling back to the hardware compass azimuth when stationary or moving slowly. It also manages the state of the **Modular Dashboard**, persisting the active widget layout via `SettingsRepository`.
+* **`SpeedometerScreen`**: A declarative Jetpack Compose UI built entirely around a responsive `LazyVerticalGrid`. It supports adaptive multi-column layouts for Landscape/Tablet modes and includes a custom 2D drag-and-drop gesture engine for rearranging widgets on the fly.
 
 ## 4. UI Theming & Branding
 LibreSpeedo utilizes a custom Material 3 Dark Theme mapping:

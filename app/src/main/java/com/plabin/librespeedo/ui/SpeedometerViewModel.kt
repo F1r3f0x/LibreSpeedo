@@ -19,6 +19,7 @@ package com.plabin.librespeedo.ui
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.plabin.librespeedo.data.SettingsRepository
 import com.plabin.librespeedo.location.LocationClient
 import com.plabin.librespeedo.sensors.SensorClient
 import com.plabin.librespeedo.utils.SpeedConverter
@@ -28,6 +29,10 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+
+enum class WidgetType {
+    SPEEDOMETER, COMPASS, POSITION, DEBUG, HELLO_WORLD
+}
 
 /**
  * Represents the current UI state of the speedometer screen.
@@ -66,9 +71,56 @@ class SpeedometerViewModel(application: Application) : AndroidViewModel(applicat
 
     private val locationClient = LocationClient(application)
     private val sensorClient = SensorClient(application)
+    private val settingsRepository = SettingsRepository(application)
 
     private val _uiState = MutableStateFlow(SpeedometerUiState())
     val uiState: StateFlow<SpeedometerUiState> = _uiState.asStateFlow()
+
+    private val defaultWidgets = listOf(
+        WidgetType.SPEEDOMETER,
+        WidgetType.COMPASS,
+        WidgetType.POSITION,
+        WidgetType.DEBUG
+    )
+
+    private val _activeWidgets = MutableStateFlow(
+        settingsRepository.getActiveWidgets(defaultWidgets.map { it.name })
+            .mapNotNull { name ->
+                try {
+                    WidgetType.valueOf(name)
+                } catch (e: Exception) {
+                    null
+                }
+            }
+            .takeIf { it.isNotEmpty() } ?: defaultWidgets
+    )
+    val activeWidgets: StateFlow<List<WidgetType>> = _activeWidgets.asStateFlow()
+
+    private fun saveWidgets() {
+        settingsRepository.setActiveWidgets(_activeWidgets.value.map { it.name })
+    }
+
+    fun reorderWidget(from: Int, to: Int) {
+        val list = _activeWidgets.value.toMutableList()
+        if (from in list.indices && to in list.indices) {
+            val item = list.removeAt(from)
+            list.add(to, item)
+            _activeWidgets.value = list
+            saveWidgets()
+        }
+    }
+
+    fun addWidget(widget: WidgetType) {
+        if (!_activeWidgets.value.contains(widget)) {
+            _activeWidgets.value = _activeWidgets.value + widget
+            saveWidgets()
+        }
+    }
+
+    fun removeWidget(widget: WidgetType) {
+        _activeWidgets.value = _activeWidgets.value.filter { it != widget }
+        saveWidgets()
+    }
 
     /**
      * Begins collecting location updates from the [LocationClient].

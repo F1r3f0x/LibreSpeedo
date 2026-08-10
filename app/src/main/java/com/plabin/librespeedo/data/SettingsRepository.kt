@@ -47,4 +47,17 @@ class SettingsRepository(private val prefs: SharedPreferences) {
         prefs.edit { putBoolean("keep_screen_on", enabled) }
         _isKeepScreenOn.value = enabled
     }
+
+    fun getActiveWidgets(defaultList: List<String>): List<String> {
+        val stringList = prefs.getString("active_widgets", null)
+        return if (stringList != null && stringList.isNotEmpty()) {
+            stringList.split(",")
+        } else {
+            defaultList
+        }
+    }
+
+    fun setActiveWidgets(widgets: List<String>) {
+        prefs.edit { putString("active_widgets", widgets.joinToString(",")) }
+    }
 }
