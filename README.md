@@ -3,15 +3,15 @@
 LibreSpeedo is an open-source, privacy-respecting speedometer and trip logger for Android. Built strictly without proprietary Google Play Services, it is 100% compatible with F-Droid and relies entirely on Android's native location APIs.
 
 ## Features (Prototype)
-- **Accurate Speed Tracking**: Displays live speed in km/h. (TODO: more units)
 - **Native Fused Location**: Leverages Android 12+'s native `FUSED_PROVIDER` for high accuracy without Google Play Services.
 - **Smart Fused Compass**: Fuses hardware sensors (accelerometer & magnetic field) with GPS bearing. Includes tilt-compensation for upright dashboards and a low-pass filter to eliminate jitter.
-- **Modular Dashboard**: A fully customizable interface where you can add, remove, and drag-and-drop widgets. The layout adapts dynamically between Portrait and Landscape (tablets & car mounts). Current widgets include:
-  - **Speedometer**: Huge, high-contrast speed display.
+- **Modular Dashboard**: A fully customizable interface where you can add, remove, resize, and drag-and-drop widgets. The layout adapts dynamically using a Staggered Grid. Current widgets include:
+  - **Speedometer**: Huge, high-contrast speed display with customizable units (km/h, mph, m/s).
   - **Compass**: Real-time heading needle that correctly points North.
   - **Position**: Raw GPS coordinates.
   - **Debug Panel**: Monitor exactly which hardware provider is active, alongside altitude, accuracy metrics, and raw sensor data (accel, gyro, mag).
   - **Hello World**: A simple placeholder for future feature expansion!
+- **Dashboard Management**: A dedicated Edit Mode prevents accidental swipes, while a Reset Dashboard Layout button restores defaults instantly.
 
 ## Architecture & Technical Details
 See the [docs/architecture.md](docs/architecture.md) file for a deep dive into the native Location fallback logic, Kotlin Coroutines Flow implementation, and custom Material 3 theming.

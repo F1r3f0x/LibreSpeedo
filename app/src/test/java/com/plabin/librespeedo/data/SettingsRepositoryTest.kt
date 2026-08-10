@@ -19,6 +19,7 @@ package com.plabin.librespeedo.data
 import android.content.SharedPreferences
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
+import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 
@@ -63,6 +64,59 @@ class SettingsRepositoryTest {
 
         assertTrue(repository.isKeepScreenOn.value)
         assertTrue(fakePrefs.getBoolean("keep_screen_on", false))
+    }
+
+    @Test
+    fun setEditMode_updatesStateAndPreferences() {
+        assertFalse(repository.isEditMode.value)
+        repository.setEditMode(true)
+        assertTrue(repository.isEditMode.value)
+        assertTrue(fakePrefs.getBoolean("edit_mode", false))
+    }
+
+    @Test
+    fun setSpeedUnit_updatesStateAndPreferences() {
+        assertEquals(SpeedUnit.KMH, repository.speedUnit.value)
+        repository.setSpeedUnit(SpeedUnit.MPH)
+        assertEquals(SpeedUnit.MPH, repository.speedUnit.value)
+        assertEquals("MPH", fakePrefs.getString("speed_unit", ""))
+    }
+
+    @Test
+    fun setWidgetHeight_updatesStateAndPreferences() {
+        assertTrue(repository.widgetHeights.value.isEmpty())
+        repository.setWidgetHeight("SPEEDOMETER", 250)
+        assertEquals(250, repository.widgetHeights.value["SPEEDOMETER"])
+        assertEquals("SPEEDOMETER:250", fakePrefs.getString("widget_heights", ""))
+        
+        repository.setWidgetHeight("COMPASS", 150)
+        assertEquals(250, repository.widgetHeights.value["SPEEDOMETER"])
+        assertEquals(150, repository.widgetHeights.value["COMPASS"])
+        assertTrue(fakePrefs.getString("widget_heights", "")!!.contains("SPEEDOMETER:250"))
+        assertTrue(fakePrefs.getString("widget_heights", "")!!.contains("COMPASS:150"))
+    }
+
+    @Test
+    fun activeWidgets_readAndWriteCorrectly() {
+        val defaultList = listOf("SPEEDOMETER", "COMPASS")
+        assertEquals(defaultList, repository.getActiveWidgets(defaultList))
+
+        val customList = listOf("SPEEDOMETER", "DEBUG")
+        repository.setActiveWidgets(customList)
+        assertEquals("SPEEDOMETER,DEBUG", fakePrefs.getString("active_widgets", ""))
+        assertEquals(customList, repository.getActiveWidgets(defaultList))
+    }
+
+    @Test
+    fun clearLayout_removesLayoutPreferences() {
+        repository.setActiveWidgets(listOf("DEBUG"))
+        repository.setWidgetHeight("SPEEDOMETER", 300)
+        
+        repository.clearLayout()
+        
+        assertFalse(fakePrefs.contains("active_widgets"))
+        assertFalse(fakePrefs.contains("widget_heights"))
+        assertTrue(repository.widgetHeights.value.isEmpty())
     }
 }
 

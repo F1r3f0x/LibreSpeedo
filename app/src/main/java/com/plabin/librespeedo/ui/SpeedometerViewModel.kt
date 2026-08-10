@@ -95,6 +95,9 @@ class SpeedometerViewModel(application: Application) : AndroidViewModel(applicat
             .takeIf { it.isNotEmpty() } ?: defaultWidgets
     )
     val activeWidgets: StateFlow<List<WidgetType>> = _activeWidgets.asStateFlow()
+    val widgetHeights: StateFlow<Map<String, Int>> = settingsRepository.widgetHeights
+
+    fun setWidgetHeight(widget: WidgetType, heightDp: Int) = settingsRepository.setWidgetHeight(widget.name, heightDp)
 
     private fun saveWidgets() {
         settingsRepository.setActiveWidgets(_activeWidgets.value.map { it.name })
@@ -120,6 +123,11 @@ class SpeedometerViewModel(application: Application) : AndroidViewModel(applicat
     fun removeWidget(widget: WidgetType) {
         _activeWidgets.value = _activeWidgets.value.filter { it != widget }
         saveWidgets()
+    }
+
+    fun resetLayout() {
+        _activeWidgets.value = defaultWidgets
+        settingsRepository.clearLayout()
     }
 
     /**

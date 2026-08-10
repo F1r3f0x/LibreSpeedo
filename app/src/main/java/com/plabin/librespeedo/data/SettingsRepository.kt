@@ -23,6 +23,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
+enum class SpeedUnit { KMH, MPH, MS }
+
 /**
  * A simple repository for managing user preferences using SharedPreferences.
  * Exposes settings as StateFlows so the Compose UI can react instantly.
@@ -38,6 +40,32 @@ class SettingsRepository(private val prefs: SharedPreferences) {
     private val _isKeepScreenOn = MutableStateFlow(prefs.getBoolean("keep_screen_on", true))
     val isKeepScreenOn: StateFlow<Boolean> = _isKeepScreenOn.asStateFlow()
 
+    private val _isEditMode = MutableStateFlow(prefs.getBoolean("edit_mode", false))
+    val isEditMode: StateFlow<Boolean> = _isEditMode.asStateFlow()
+
+    private val _widgetHeights = MutableStateFlow(
+        prefs.getString("widget_heights", null)?.let { str ->
+            str.split(",").mapNotNull {
+                val parts = it.split(":")
+                if (parts.size == 2) {
+                    try {
+                        parts[0] to parts[1].toInt()
+                    } catch (e: Exception) { null }
+                } else null
+            }.toMap()
+        } ?: emptyMap()
+    )
+    val widgetHeights: StateFlow<Map<String, Int>> = _widgetHeights.asStateFlow()
+
+    private val _speedUnit = MutableStateFlow(
+        try {
+            SpeedUnit.valueOf(prefs.getString("speed_unit", SpeedUnit.KMH.name) ?: SpeedUnit.KMH.name)
+        } catch (e: Exception) {
+            SpeedUnit.KMH
+        }
+    )
+    val speedUnit: StateFlow<SpeedUnit> = _speedUnit.asStateFlow()
+
     fun setOledTheme(enabled: Boolean) {
         prefs.edit { putBoolean("oled_theme", enabled) }
         _isOledTheme.value = enabled
@@ -46,6 +74,24 @@ class SettingsRepository(private val prefs: SharedPreferences) {
     fun setKeepScreenOn(enabled: Boolean) {
         prefs.edit { putBoolean("keep_screen_on", enabled) }
         _isKeepScreenOn.value = enabled
+    }
+
+    fun setEditMode(enabled: Boolean) {
+        prefs.edit { putBoolean("edit_mode", enabled) }
+        _isEditMode.value = enabled
+    }
+
+    fun setSpeedUnit(unit: SpeedUnit) {
+        prefs.edit { putString("speed_unit", unit.name) }
+        _speedUnit.value = unit
+    }
+
+    fun setWidgetHeight(widgetName: String, heightDp: Int) {
+        val newMap = _widgetHeights.value.toMutableMap()
+        newMap[widgetName] = heightDp
+        _widgetHeights.value = newMap
+        val str = newMap.entries.joinToString(",") { "${it.key}:${it.value}" }
+        prefs.edit { putString("widget_heights", str) }
     }
 
     fun getActiveWidgets(defaultList: List<String>): List<String> {
@@ -59,5 +105,13 @@ class SettingsRepository(private val prefs: SharedPreferences) {
 
     fun setActiveWidgets(widgets: List<String>) {
         prefs.edit { putString("active_widgets", widgets.joinToString(",")) }
+    }
+
+    fun clearLayout() {
+        prefs.edit {
+            remove("active_widgets")
+            remove("widget_heights")
+        }
+        _widgetHeights.value = emptyMap()
     }
 }

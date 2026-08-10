@@ -81,6 +81,9 @@ class MainActivity : ComponentActivity() {
             val activeWidgets by viewModel.activeWidgets.collectAsState()
             val isOledTheme by settingsRepository.isOledTheme.collectAsState()
             val isKeepScreenOn by settingsRepository.isKeepScreenOn.collectAsState()
+            val isEditMode by settingsRepository.isEditMode.collectAsState()
+            val speedUnit by settingsRepository.speedUnit.collectAsState()
+            val widgetHeights by viewModel.widgetHeights.collectAsState()
             
             val navController = rememberNavController()
 
@@ -98,9 +101,14 @@ class MainActivity : ComponentActivity() {
                         SpeedometerScreen(
                             uiState = uiState,
                             activeWidgets = activeWidgets,
+                            isEditMode = isEditMode,
+                            speedUnit = speedUnit,
+                            widgetHeights = widgetHeights,
                             onReorderWidget = viewModel::reorderWidget,
                             onAddWidget = viewModel::addWidget,
                             onRemoveWidget = viewModel::removeWidget,
+                            onWidgetHeightChange = viewModel::setWidgetHeight,
+                            onSpeedUnitChange = { settingsRepository.setSpeedUnit(it) },
                             onSettingsClick = { navController.navigate("settings") },
                             modifier = Modifier.fillMaxSize()
                         )
@@ -109,8 +117,11 @@ class MainActivity : ComponentActivity() {
                         SettingsScreen(
                             isOledTheme = isOledTheme,
                             isKeepScreenOn = isKeepScreenOn,
+                            isEditMode = isEditMode,
                             onOledThemeChanged = { settingsRepository.setOledTheme(it) },
                             onKeepScreenOnChanged = { settingsRepository.setKeepScreenOn(it) },
+                            onEditModeChanged = { settingsRepository.setEditMode(it) },
+                            onResetLayout = viewModel::resetLayout,
                             onNavigateBack = { navController.popBackStack() },
                             onNavigateToAbout = { navController.navigate("about") }
                         )

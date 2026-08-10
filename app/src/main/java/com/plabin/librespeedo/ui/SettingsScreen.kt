@@ -28,6 +28,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -35,8 +36,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.material3.AlertDialog
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -57,12 +64,40 @@ import androidx.compose.ui.unit.sp
 fun SettingsScreen(
     isOledTheme: Boolean,
     isKeepScreenOn: Boolean,
+    isEditMode: Boolean,
     onOledThemeChanged: (Boolean) -> Unit,
     onKeepScreenOnChanged: (Boolean) -> Unit,
+    onEditModeChanged: (Boolean) -> Unit,
+    onResetLayout: () -> Unit,
     onNavigateBack: () -> Unit,
     onNavigateToAbout: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    var showResetDialog by remember { mutableStateOf(false) }
+
+    if (showResetDialog) {
+        AlertDialog(
+            onDismissRequest = { showResetDialog = false },
+            title = { Text("Reset Layout") },
+            text = { Text("Are you sure you want to reset your dashboard layout? All custom widgets and heights will be lost.") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        onResetLayout()
+                        showResetDialog = false
+                    }
+                ) {
+                    Text("Reset")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showResetDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -100,6 +135,24 @@ fun SettingsScreen(
                 isChecked = isKeepScreenOn,
                 onCheckedChange = onKeepScreenOnChanged
             )
+            
+            Spacer(modifier = Modifier.height(24.dp))
+            
+            SettingRow(
+                title = "Edit Dashboard",
+                description = "Enable Edit Mode to rearrange, add, or remove widgets on the main screen.",
+                isChecked = isEditMode,
+                onCheckedChange = onEditModeChanged
+            )
+            
+            Spacer(modifier = Modifier.height(24.dp))
+            
+            Button(
+                onClick = { showResetDialog = true },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Reset Dashboard Layout")
+            }
             
             Spacer(modifier = Modifier.height(32.dp))
             

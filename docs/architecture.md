@@ -66,7 +66,7 @@ To complement GPS data, `SensorClient` tracks hardware sensors including `TYPE_A
 
 ## 3. Presentation Layer
 * **`SpeedometerViewModel`**: Subscribes to both the `LocationClient` and `SensorClient` Flows. It parses raw location metrics, exposes raw sensor data, and implements a **Smart Fused Bearing**: using GPS bearing when moving faster than 3 km/h, and falling back to the hardware compass azimuth when stationary or moving slowly. It also manages the state of the **Modular Dashboard**, persisting the active widget layout via `SettingsRepository`.
-* **`SpeedometerScreen`**: A declarative Jetpack Compose UI built entirely around a responsive `LazyVerticalGrid`. It supports adaptive multi-column layouts for Landscape/Tablet modes and includes a custom 2D drag-and-drop gesture engine for rearranging widgets on the fly.
+* **`SpeedometerScreen`**: A declarative Jetpack Compose UI built entirely around a responsive `LazyVerticalStaggeredGrid`. It supports adaptive multi-column layouts for Landscape/Tablet modes and includes a custom drag-and-drop gesture engine for rearranging widgets on the fly, alongside dynamic drag handles for individual widget height resizing.
 
 ## 4. UI Theming & Branding
 LibreSpeedo utilizes a custom Material 3 Dark Theme mapping:
