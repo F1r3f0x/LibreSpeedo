@@ -16,6 +16,7 @@
  */
 package com.plabin.librespeedo.ui
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -27,6 +28,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
@@ -40,10 +42,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.plabin.librespeedo.R
 import com.plabin.librespeedo.ui.theme.LibreSpeedoTheme
 import androidx.compose.ui.platform.LocalLocale
 
@@ -68,12 +72,22 @@ fun SpeedometerScreen(
     ) {
 
         Box(modifier = Modifier.fillMaxWidth()) {
-            Text(
-                text = "LibreSpeedo",
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.align(Alignment.Center)
-            )
+            Row(
+                modifier = Modifier.align(Alignment.Center),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.gato_1),
+                    contentDescription = "LibreSpeedo Logo",
+                    modifier = Modifier.size(36.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "LibreSpeedo",
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
             IconButton(
                 onClick = onSettingsClick,
                 modifier = Modifier.align(Alignment.CenterEnd)

@@ -1,4 +1,4 @@
-# LibreSpeedo 🚗
+# LibreSpeedo
 
 LibreSpeedo is an open-source, privacy-respecting speedometer and trip logger for Android. Built strictly without proprietary Google Play Services, it is 100% compatible with F-Droid and relies entirely on Android's native location APIs.
 
@@ -39,3 +39,6 @@ The compiled APK will be output to `app/build/outputs/apk/debug/app-debug.apk`.
 2. Plug your phone into your computer via USB and accept the debugging prompt on your phone's screen.
 3. In Android Studio, ensure your device is selected in the deployment dropdown next to the green "Run" button at the top toolbar.
 4. Click the green **Run 'app'** button (or press `Shift + F10`). Android Studio will compile, install, and launch LibreSpeedo on your device!
+
+## Credits & Copyright
+- **Logo**: Designed by Tamar Labin Correa (tmlabin99@gmail.com).

@@ -93,6 +93,15 @@ fun AboutScreen(
             )
             Text("Patricio Labin Correa (f1r3f0x)")
             
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text(
+                text = "Logo Design",
+                fontSize = 20.sp,
+                fontWeight = FontWeight.SemiBold
+            )
+            Text("Tamar Labin Correa (tmlabin99@gmail.com)")
+            
             Spacer(modifier = Modifier.height(24.dp))
             
             Text(

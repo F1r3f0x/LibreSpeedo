@@ -27,8 +27,10 @@ import kotlinx.coroutines.flow.asStateFlow
  * A simple repository for managing user preferences using SharedPreferences.
  * Exposes settings as StateFlows so the Compose UI can react instantly.
  */
-class SettingsRepository(context: Context) {
-    private val prefs: SharedPreferences = context.getSharedPreferences("librespeedo_settings", Context.MODE_PRIVATE)
+class SettingsRepository(private val prefs: SharedPreferences) {
+    constructor(context: Context) : this(
+        context.getSharedPreferences("librespeedo_settings", Context.MODE_PRIVATE)
+    )
 
     private val _isOledTheme = MutableStateFlow(prefs.getBoolean("oled_theme", false))
     val isOledTheme: StateFlow<Boolean> = _isOledTheme.asStateFlow()

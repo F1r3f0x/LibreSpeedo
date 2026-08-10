@@ -20,6 +20,7 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.plabin.librespeedo.location.LocationClient
+import com.plabin.librespeedo.utils.SpeedConverter
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -76,7 +77,7 @@ class SpeedometerViewModel(application: Application) : AndroidViewModel(applicat
             }
             .onEach { location ->
                 val speedMs = if (location.hasSpeed()) location.speed else 0f
-                val speedKmh = speedMs * 3.6f
+                val speedKmh = SpeedConverter.msToKmh(speedMs)
                 
                 val bearing = if (location.hasBearing()) location.bearing else _uiState.value.heading
 
