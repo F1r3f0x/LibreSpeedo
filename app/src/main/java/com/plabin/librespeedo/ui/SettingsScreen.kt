@@ -51,13 +51,18 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 /**
- * A screen for user preferences, such as the OLED theme and Screen Lock toggles.
+ * A screen for user preferences, such as the OLED theme, Screen Lock, and Dashboard Edit toggles.
  *
  * @param isOledTheme Current state of the OLED theme toggle.
- * @param isKeepScreenOn Current state of the screen lock toggle.
+ * @param isKeepScreenOn Current state of the screen wake lock toggle.
+ * @param isEditMode Current state of the dashboard edit mode toggle.
  * @param onOledThemeChanged Callback when the OLED theme switch is toggled.
  * @param onKeepScreenOnChanged Callback when the Keep Screen On switch is toggled.
- * @param onNavigateBack Callback when the back arrow is pressed.
+ * @param onEditModeChanged Callback when the Edit Dashboard switch is toggled.
+ * @param onResetLayout Callback when confirming a dashboard layout reset.
+ * @param onNavigateBack Callback when the top app bar back arrow is pressed.
+ * @param onNavigateToAbout Callback when the About row is clicked.
+ * @param modifier Optional [Modifier] for screen root layout.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -180,6 +185,14 @@ fun SettingsScreen(
     }
 }
 
+/**
+ * Reusable settings row displaying a title, multi-line description, and a togglable [Switch].
+ *
+ * @param title Primary heading text for the preference.
+ * @param description Detailed secondary explanation text.
+ * @param isChecked Current state of the switch toggle.
+ * @param onCheckedChange Callback when the switch is clicked.
+ */
 @Composable
 fun SettingRow(
     title: String,

@@ -27,6 +27,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 
+/** Pure black color scheme optimized for zero-power pixel illumination on OLED displays. */
 private val OledColorScheme = darkColorScheme(
     primary = TealPrimary,
     secondary = AmberAccent,
@@ -40,6 +41,7 @@ private val OledColorScheme = darkColorScheme(
     onSurfaceVariant = TextWhite
 )
 
+/** Default high-contrast dark theme utilizing slate tones to minimize glare. */
 private val DarkColorScheme = darkColorScheme(
     primary = TealPrimary,
     secondary = AmberAccent,
@@ -53,6 +55,7 @@ private val DarkColorScheme = darkColorScheme(
     onSurfaceVariant = TextWhite
 )
 
+/** Light theme scheme fallback (mirrors high-contrast dark scheme for outdoor visibility). */
 private val LightColorScheme = lightColorScheme(
     primary = TealPrimary,
     secondary = AmberAccent,
@@ -66,11 +69,21 @@ private val LightColorScheme = lightColorScheme(
     onSurfaceVariant = TextWhite
 )
 
+/**
+ * Main application theme wrapper for LibreSpeedo.
+ *
+ * Configures Material 3 color palettes and typography. Enforces high-contrast dark theme
+ * aesthetic with optional pure-black OLED power-saving mode.
+ *
+ * @param darkTheme Whether system dark theme is active.
+ * @param isOledTheme Whether pure black OLED background override is enabled.
+ * @param dynamicColor Whether Android 12+ dynamic wallpaper coloring should be used (defaults to false for brand consistency).
+ * @param content The composable UI content hierarchy to style.
+ */
 @Composable
 fun LibreSpeedoTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     isOledTheme: Boolean = false,
-    // Dynamic color is available on Android 12+, but default to false for strong brand identity
     dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {

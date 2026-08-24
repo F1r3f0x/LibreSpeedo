@@ -27,12 +27,18 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
+/**
+ * Instrumented UI test verifying rendering and user interactions in [SettingsScreen].
+ */
 @RunWith(AndroidJUnit4::class)
 class SettingsScreenTest {
 
     @get:Rule
     val composeTestRule = createComposeRule()
 
+    /**
+     * Verifies that all preference rows and headers are visible on the screen.
+     */
     @Test
     fun settingsScreen_displaysAllOptions() {
         composeTestRule.setContent {
@@ -54,6 +60,9 @@ class SettingsScreenTest {
         composeTestRule.onNodeWithText("About LibreSpeedo").assertIsDisplayed()
     }
 
+    /**
+     * Verifies that tapping the About LibreSpeedo item triggers the navigation callback.
+     */
     @Test
     fun settingsScreen_aboutClick_triggersCallback() {
         var aboutClicked = false

@@ -27,12 +27,18 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
+/**
+ * Instrumented UI test verifying that toggling Keep Screen On updates [WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON].
+ */
 @RunWith(AndroidJUnit4::class)
 class KeepScreenOnTest {
 
     @get:Rule
     val composeTestRule = createAndroidComposeRule<MainActivity>()
 
+    /**
+     * Verifies that modifying the Keep Screen On preference dynamically adds and removes the window flag.
+     */
     @Test
     fun keepScreenOn_settingToggled_modifiesWindowFlags() {
         val activity = composeTestRule.activity

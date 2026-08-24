@@ -23,6 +23,9 @@ import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 
+/**
+ * Unit tests verifying persistence and [kotlinx.coroutines.flow.StateFlow] updates in [SettingsRepository].
+ */
 class SettingsRepositoryTest {
 
     private lateinit var fakePrefs: FakeSharedPreferences
@@ -34,12 +37,18 @@ class SettingsRepositoryTest {
         repository = SettingsRepository(fakePrefs)
     }
 
+    /**
+     * Verifies default values for theme, screen wake lock, and edit mode preferences.
+     */
     @Test
     fun defaultSettings_haveExpectedInitialValues() {
         assertFalse(repository.isOledTheme.value)
         assertTrue(repository.isKeepScreenOn.value)
     }
 
+    /**
+     * Verifies setting and toggling OLED theme preference updates StateFlow and SharedPreferences.
+     */
     @Test
     fun setOledTheme_updatesStateAndPreferences() {
         repository.setOledTheme(true)
@@ -53,6 +62,9 @@ class SettingsRepositoryTest {
         assertFalse(fakePrefs.getBoolean("oled_theme", true))
     }
 
+    /**
+     * Verifies setting and toggling Keep Screen On preference updates StateFlow and SharedPreferences.
+     */
     @Test
     fun setKeepScreenOn_updatesStateAndPreferences() {
         repository.setKeepScreenOn(false)
@@ -66,6 +78,9 @@ class SettingsRepositoryTest {
         assertTrue(fakePrefs.getBoolean("keep_screen_on", false))
     }
 
+    /**
+     * Verifies setting edit mode updates StateFlow and SharedPreferences.
+     */
     @Test
     fun setEditMode_updatesStateAndPreferences() {
         assertFalse(repository.isEditMode.value)
@@ -74,6 +89,9 @@ class SettingsRepositoryTest {
         assertTrue(fakePrefs.getBoolean("edit_mode", false))
     }
 
+    /**
+     * Verifies setting speed unit updates StateFlow and SharedPreferences.
+     */
     @Test
     fun setSpeedUnit_updatesStateAndPreferences() {
         assertEquals(SpeedUnit.KMH, repository.speedUnit.value)
@@ -82,6 +100,9 @@ class SettingsRepositoryTest {
         assertEquals("MPH", fakePrefs.getString("speed_unit", ""))
     }
 
+    /**
+     * Verifies setting widget span sizes serializes correctly to SharedPreferences.
+     */
     @Test
     fun setWidgetSpan_updatesStateAndPreferences() {
         assertTrue(repository.widgetSpans.value.isEmpty())
@@ -96,6 +117,9 @@ class SettingsRepositoryTest {
         assertTrue(fakePrefs.getString("widget_spans", "")!!.contains("COMPASS:HALF"))
     }
 
+    /**
+     * Verifies reading and writing active widget lists.
+     */
     @Test
     fun activeWidgets_readAndWriteCorrectly() {
         val defaultList = listOf("SPEEDOMETER", "COMPASS")
@@ -107,6 +131,9 @@ class SettingsRepositoryTest {
         assertEquals(customList, repository.getActiveWidgets(defaultList))
     }
 
+    /**
+     * Verifies clearing layout removes active widgets and widget span entries from SharedPreferences.
+     */
     @Test
     fun clearLayout_removesLayoutPreferences() {
         repository.setActiveWidgets(listOf("DEBUG"))
@@ -120,6 +147,9 @@ class SettingsRepositoryTest {
     }
 }
 
+/**
+ * In-memory [SharedPreferences] and [SharedPreferences.Editor] fake for fast unit testing.
+ */
 class FakeSharedPreferences : SharedPreferences, SharedPreferences.Editor {
     private val values = mutableMapOf<String, Any>()
 

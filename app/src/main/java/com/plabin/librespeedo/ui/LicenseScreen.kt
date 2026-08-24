@@ -42,6 +42,15 @@ import com.plabin.librespeedo.R
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
+/**
+ * A dedicated full-screen viewer for the GNU General Public License v3 text.
+ *
+ * Asynchronously loads the license text from `res/raw/license` using [Dispatchers.IO]
+ * and presents it in a vertically scrollable container.
+ *
+ * @param onNavigateBack Callback when the top app bar back arrow is clicked.
+ * @param modifier Optional [Modifier] for screen layout.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LicenseScreen(

@@ -26,16 +26,25 @@ object SpeedConverter {
 
     /**
      * Converts meters per second (m/s) to kilometers per hour (km/h).
+     *
+     * @param ms Speed in meters per second.
+     * @return Equivalent speed in kilometers per hour.
      */
     fun msToKmh(ms: Float): Float = ms * MS_TO_KMH_FACTOR
 
     /**
      * Converts meters per second (m/s) to miles per hour (mph).
+     *
+     * @param ms Speed in meters per second.
+     * @return Equivalent speed in miles per hour.
      */
     fun msToMph(ms: Float): Float = ms * MS_TO_MPH_FACTOR
 
     /**
      * Converts meters per second (m/s) to knots (nautical miles per hour).
+     *
+     * @param ms Speed in meters per second.
+     * @return Equivalent speed in nautical miles per hour.
      */
     fun msToKnots(ms: Float): Float = ms * MS_TO_KNOTS_FACTOR
 }

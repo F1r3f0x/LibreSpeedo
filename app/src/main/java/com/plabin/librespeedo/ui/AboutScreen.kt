@@ -41,6 +41,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.plabin.librespeedo.BuildConfig
 
+/**
+ * The About screen displaying app branding, version metadata, developer attribution,
+ * repository link, and navigation to the GPLv3 license viewer.
+ *
+ * @param onNavigateBack Callback when the back arrow is clicked.
+ * @param onViewLicense Callback when the "View GPLv3 License" button is pressed.
+ * @param modifier Optional [Modifier] for screen layout.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AboutScreen(

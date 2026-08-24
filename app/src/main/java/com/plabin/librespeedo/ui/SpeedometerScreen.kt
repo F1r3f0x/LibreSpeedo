@@ -58,6 +58,12 @@ import com.plabin.librespeedo.data.WidgetSpan
 import com.plabin.librespeedo.ui.theme.LibreSpeedoTheme
 import com.plabin.librespeedo.utils.SpeedConverter
 
+/**
+ * Returns the default [WidgetSpan] size configuration for a given [WidgetType].
+ *
+ * @param widget The [WidgetType] to query.
+ * @return The recommended default [WidgetSpan].
+ */
 fun getDefaultWidgetSpan(widget: WidgetType): WidgetSpan = when (widget) {
     WidgetType.SPEEDOMETER -> WidgetSpan.FULL_WIDTH
     WidgetType.COMPASS -> WidgetSpan.HALF
@@ -66,6 +72,25 @@ fun getDefaultWidgetSpan(widget: WidgetType): WidgetSpan = when (widget) {
     WidgetType.HELLO_WORLD -> WidgetSpan.HALF
 }
 
+/**
+ * The primary dashboard screen of LibreSpeedo.
+ *
+ * Displays the modular grid of active widgets, handles floating action buttons for adding
+ * widgets during edit mode, and adapts the UI layout based on device orientation.
+ *
+ * @param uiState Current sensor metrics, GPS coordinates, speed, and tracking status.
+ * @param activeWidgets Ordered list of widgets to render on the dashboard.
+ * @param isEditMode True if editing (reordering, resizing, adding/removing) is unlocked.
+ * @param speedUnit The active unit of measurement for speed (KMH, MPH, MS).
+ * @param widgetSpans Mapping of widget identifiers to their current [WidgetSpan] grid sizes.
+ * @param onReorderWidget Callback when a widget is dragged and moved from one position to another.
+ * @param onAddWidget Callback when a new widget is selected from the add menu.
+ * @param onRemoveWidget Callback when a widget's remove button is pressed.
+ * @param onWidgetSpanChange Callback when a widget's span size is cycled or changed.
+ * @param onSpeedUnitChange Callback when the speed unit is changed from widget settings.
+ * @param onSettingsClick Callback to navigate to the settings screen.
+ * @param modifier Optional [Modifier] for screen root layout.
+ */
 @Composable
 fun SpeedometerScreen(
     uiState: SpeedometerUiState,
@@ -165,6 +190,21 @@ fun SpeedometerScreen(
     }
 }
 
+/**
+ * A responsive, reorderable grid component that renders dashboard widgets.
+ *
+ * Implements long-press drag-and-drop gesture detection across multi-column adaptive grid cells.
+ *
+ * @param widgets Ordered list of [WidgetType] items to display.
+ * @param isEditMode True if drag-and-drop and size modification controls are active.
+ * @param speedUnit Active speed unit preference.
+ * @param widgetSpans Custom span configurations for each widget.
+ * @param onReorder Callback when dragging an item reorders it in the active list.
+ * @param uiState Current sensor and location metrics.
+ * @param onRemove Callback when dismissing a widget.
+ * @param onSpeedUnitChange Callback when updating the speed measurement unit.
+ * @param onWidgetSpanChange Callback when cycling a widget's span size.
+ */
 @Composable
 fun ReorderableWidgetGrid(
     widgets: List<WidgetType>,
@@ -282,6 +322,22 @@ fun ReorderableWidgetGrid(
     }
 }
 
+/**
+ * Container card for an individual dashboard widget.
+ *
+ * Provides elevated Material surface, edit-mode action controls (resize button, unit settings,
+ * remove button), and active span badge.
+ *
+ * @param widget The [WidgetType] to display.
+ * @param span The active [WidgetSpan] size of the widget.
+ * @param uiState Current sensor and location metrics.
+ * @param isEditMode True if editing actions (remove, resize, config) should be visible.
+ * @param speedUnit Active speed measurement unit.
+ * @param onRemove Callback to remove this widget from the active dashboard.
+ * @param onToggleSpan Callback to cycle this widget to the next span size.
+ * @param onSpeedUnitChange Callback to update the speedometer's unit preference.
+ * @param elevation Dynamic elevation applied to the card (e.g. higher when dragged).
+ */
 @Composable
 fun WidgetContainer(
     widget: WidgetType,
@@ -396,6 +452,16 @@ fun WidgetContainer(
     }
 }
 
+/**
+ * Renders the high-contrast digital speedometer readout.
+ *
+ * Automatically converts raw speed to the selected [SpeedUnit] and dynamically scales
+ * typography according to the active [WidgetSpan].
+ *
+ * @param uiState Current speedometer UI state with raw speed metrics.
+ * @param speedUnit Active unit (KMH, MPH, MS).
+ * @param span Current card span sizing.
+ */
 @Composable
 fun SpeedComponent(uiState: SpeedometerUiState, speedUnit: SpeedUnit, span: WidgetSpan = WidgetSpan.FULL_WIDTH) {
     val speedRawMs = uiState.speedKmh / 3.6f
@@ -440,6 +506,12 @@ fun SpeedComponent(uiState: SpeedometerUiState, speedUnit: SpeedUnit, span: Widg
     }
 }
 
+/**
+ * Renders current geographic position (latitude and longitude).
+ *
+ * @param uiState State containing current latitude and longitude.
+ * @param span Current card span sizing for responsive font adjustments.
+ */
 @Composable
 fun PositionComponent(uiState: SpeedometerUiState, span: WidgetSpan = WidgetSpan.HALF) {
     val titleSize = if (span == WidgetSpan.HALF) 13.sp else 16.sp
@@ -466,6 +538,12 @@ fun PositionComponent(uiState: SpeedometerUiState, span: WidgetSpan = WidgetSpan
     }
 }
 
+/**
+ * Renders an animated compass needle indicating current heading.
+ *
+ * @param heading Heading in degrees where 0 is North.
+ * @param span Current card span sizing.
+ */
 @Composable
 fun CompassComponent(heading: Float, span: WidgetSpan = WidgetSpan.HALF) {
     val dialSize = when (span) {
@@ -502,6 +580,14 @@ fun CompassComponent(heading: Float, span: WidgetSpan = WidgetSpan.HALF) {
     }
 }
 
+/**
+ * Renders live diagnostics including hardware sensor vectors, GNSS accuracy, altitude, and provider.
+ *
+ * Automatically enables vertical scrolling when rendered inside compact card spans.
+ *
+ * @param uiState Current sensor and location metrics.
+ * @param span Current card span sizing.
+ */
 @Composable
 fun DebugComponent(uiState: SpeedometerUiState, span: WidgetSpan = WidgetSpan.LARGE) {
     Column(
@@ -531,6 +617,13 @@ fun DebugComponent(uiState: SpeedometerUiState, span: WidgetSpan = WidgetSpan.LA
     }
 }
 
+/**
+ * A single row within the [DebugComponent] showing a label and value pair.
+ *
+ * @param label The metric name.
+ * @param value The formatted metric readout.
+ * @param span Current card span sizing for font sizing.
+ */
 @Composable
 fun DebugRow(label: String, value: String, span: WidgetSpan = WidgetSpan.LARGE) {
     val fontSize = if (span == WidgetSpan.HALF) 10.sp else 12.sp
@@ -545,6 +638,9 @@ fun DebugRow(label: String, value: String, span: WidgetSpan = WidgetSpan.LARGE) 
     }
 }
 
+/**
+ * Placeholder widget component.
+ */
 @Composable
 fun HelloWorldComponent() {
     Text(
@@ -555,6 +651,9 @@ fun HelloWorldComponent() {
     )
 }
 
+/**
+ * Preview composable for [SpeedometerScreen] in Jetpack Compose UI tooling.
+ */
 @Preview(showBackground = true)
 @Composable
 fun SpeedometerScreenPreview() {

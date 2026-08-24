@@ -18,8 +18,17 @@ package com.plabin.librespeedo.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
+/** Primary brand teal accent color used for primary actions and speed digits. */
 val TealPrimary = Color(0xFF236077)
+
+/** High-visibility amber accent color used for secondary highlights and warnings. */
 val AmberAccent = Color(0xFFF29938)
+
+/** Deep slate background tone designed to reduce glare and eye strain at night. */
 val SlateBackground = Color(0xFF1E2A35)
+
+/** High-contrast crisp white typography color for text readouts and labels. */
 val TextWhite = Color(0xFFF1F5F9)
+
+/** Elevated surface color for cards and container panels in dark theme. */
 val SurfaceDark = Color(0xFF2B3945)

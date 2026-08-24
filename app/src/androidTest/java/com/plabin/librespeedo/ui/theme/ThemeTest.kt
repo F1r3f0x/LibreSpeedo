@@ -26,12 +26,18 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
+/**
+ * Instrumented UI test verifying color schemes in [LibreSpeedoTheme].
+ */
 @RunWith(AndroidJUnit4::class)
 class ThemeTest {
 
     @get:Rule
     val composeTestRule = createComposeRule()
 
+    /**
+     * Verifies that enabling the OLED theme override applies pure black (#000000) to background and surface.
+     */
     @Test
     fun oledTheme_whenEnabled_appliesPureBlackBackgroundAndSurface() {
         var observedBackground: Color = Color.Unspecified

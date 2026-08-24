@@ -19,14 +19,23 @@ package com.plabin.librespeedo.utils
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
+/**
+ * Unit tests verifying unit conversions across km/h, mph, and knots in [SpeedConverter].
+ */
 class SpeedConverterTest {
 
+    /**
+     * Verifies converting 0 m/s to km/h yields 0 km/h.
+     */
     @Test
     fun msToKmh_zero_returnsZero() {
         val result = SpeedConverter.msToKmh(0f)
         assertEquals(0f, result, 0.001f)
     }
 
+    /**
+     * Verifies converting 10 m/s to km/h yields 36 km/h.
+     */
     @Test
     fun msToKmh_positiveValue_convertsCorrectly() {
         // 10 m/s = 36 km/h
@@ -34,6 +43,9 @@ class SpeedConverterTest {
         assertEquals(36f, result, 0.001f)
     }
 
+    /**
+     * Verifies converting 27.777778 m/s to km/h yields 100 km/h.
+     */
     @Test
     fun msToKmh_hundredKmh_convertsCorrectly() {
         // 27.777778 m/s ≈ 100 km/h
@@ -41,12 +53,18 @@ class SpeedConverterTest {
         assertEquals(100f, result, 0.01f)
     }
 
+    /**
+     * Verifies converting 0 m/s to mph yields 0 mph.
+     */
     @Test
     fun msToMph_zero_returnsZero() {
         val result = SpeedConverter.msToMph(0f)
         assertEquals(0f, result, 0.001f)
     }
 
+    /**
+     * Verifies converting 10 m/s to mph yields ~22.3694 mph.
+     */
     @Test
     fun msToMph_positiveValue_convertsCorrectly() {
         // 10 m/s ≈ 22.3694 mph
@@ -54,12 +72,18 @@ class SpeedConverterTest {
         assertEquals(22.3694f, result, 0.001f)
     }
 
+    /**
+     * Verifies converting 0 m/s to knots yields 0 knots.
+     */
     @Test
     fun msToKnots_zero_returnsZero() {
         val result = SpeedConverter.msToKnots(0f)
         assertEquals(0f, result, 0.001f)
     }
 
+    /**
+     * Verifies converting 10 m/s to knots yields ~19.4384 knots.
+     */
     @Test
     fun msToKnots_positiveValue_convertsCorrectly() {
         // 10 m/s ≈ 19.4384 knots

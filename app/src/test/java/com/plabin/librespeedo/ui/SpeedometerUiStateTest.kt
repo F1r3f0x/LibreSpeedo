@@ -22,8 +22,14 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
+/**
+ * Unit tests verifying default initialization and state copy operations for [SpeedometerUiState].
+ */
 class SpeedometerUiStateTest {
 
+    /**
+     * Verifies that the default [SpeedometerUiState] has expected initial zeroes, defaults, and flags.
+     */
     @Test
     fun defaultState_hasExpectedDefaults() {
         val state = SpeedometerUiState()
@@ -49,6 +55,9 @@ class SpeedometerUiStateTest {
         assertNull(state.error)
     }
 
+    /**
+     * Verifies that copying [SpeedometerUiState] with updated sensor and GPS parameters updates all fields.
+     */
     @Test
     fun stateCopy_updatesFieldsCorrectly() {
         val initialState = SpeedometerUiState()
@@ -97,6 +106,9 @@ class SpeedometerUiStateTest {
         assertNull(updatedState.error)
     }
 
+    /**
+     * Verifies copying state with error details reflects the error correctly and disables tracking flag.
+     */
     @Test
     fun stateCopy_errorHandling() {
         val stateWithError = SpeedometerUiState().copy(
