@@ -77,7 +77,7 @@ class SensorDataTest {
         val diffAzimuth = base.copy(azimuth = 90f)
 
         // Reflexive
-        org.junit.Assert.assertTrue(base == base)
+        org.junit.Assert.assertTrue(base.equals(base))
         // Identical values
         org.junit.Assert.assertTrue(base == identical)
         // Equal hashCodes

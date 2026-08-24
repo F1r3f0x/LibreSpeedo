@@ -19,7 +19,7 @@ android {
             providers.exec {
                 commandLine("git", "rev-parse", "--short", "HEAD")
             }.standardOutput.asText.get().trim()
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             "unknown"
         }
         buildConfigField("String", "GIT_COMMIT", "\"$gitCommit\"")
@@ -59,7 +59,6 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     testImplementation(libs.junit)
-    testImplementation(libs.kotlinx.coroutines.test)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     androidTestImplementation(libs.androidx.espresso.core)

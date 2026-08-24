@@ -25,19 +25,14 @@ import com.plabin.librespeedo.data.WidgetSpan
 import com.plabin.librespeedo.location.LocationClient
 import com.plabin.librespeedo.sensors.SensorClient
 import com.plabin.librespeedo.sensors.SensorData
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.test.UnconfinedTestDispatcher
-import kotlinx.coroutines.test.resetMain
-import kotlinx.coroutines.test.setMain
-import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -45,10 +40,8 @@ import org.junit.Test
 /**
  * Unit tests verifying widget management, reordering, resizing, and state bindings in [SpeedometerViewModel].
  */
-@OptIn(ExperimentalCoroutinesApi::class)
 class SpeedometerViewModelTest {
 
-    private val testDispatcher = UnconfinedTestDispatcher()
     private lateinit var fakePrefs: FakeSharedPreferences
     private lateinit var settingsRepository: SettingsRepository
     private lateinit var fakeLocationClient: FakeLocationClient
@@ -57,7 +50,6 @@ class SpeedometerViewModelTest {
 
     @Before
     fun setUp() {
-        Dispatchers.setMain(testDispatcher)
         val app = Application()
         fakePrefs = FakeSharedPreferences()
         settingsRepository = SettingsRepository(fakePrefs)
@@ -67,13 +59,9 @@ class SpeedometerViewModelTest {
             application = app,
             locationClient = fakeLocationClient,
             sensorClient = fakeSensorClient,
-            settingsRepository = settingsRepository
+            settingsRepository = settingsRepository,
+            coroutineScope = CoroutineScope(Dispatchers.Unconfined)
         )
-    }
-
-    @After
-    fun tearDown() {
-        Dispatchers.resetMain()
     }
 
     /**
@@ -204,6 +192,20 @@ class SpeedometerViewModelTest {
         assertEquals(30f, state.magZ, 0.001f)
         assertEquals(270f, state.compassAzimuth, 0.001f)
         assertEquals(270f, state.heading, 0.001f)
+    }
+
+    /**
+     * Verifies startTracking error handling when location stream fails.
+     */
+    @Test
+    fun startTracking_handlesLocationError() {
+        fakeLocationClient.flow = flow {
+            throw RuntimeException("GPS Provider disabled")
+        }
+
+        viewModel.startTracking()
+        assertFalse(viewModel.uiState.value.isTracking)
+        assertEquals("GPS Provider disabled", viewModel.uiState.value.error)
     }
 
     private class FakeLocationClient(context: Context) : LocationClient(context) {

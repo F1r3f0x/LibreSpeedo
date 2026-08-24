@@ -24,6 +24,7 @@ import com.plabin.librespeedo.data.WidgetSpan
 import com.plabin.librespeedo.location.LocationClient
 import com.plabin.librespeedo.sensors.SensorClient
 import com.plabin.librespeedo.utils.SpeedConverter
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -43,7 +44,7 @@ enum class WidgetType {
     POSITION,
     /** Diagnostic readout of location provider, raw sensor metrics, and accuracy. */
     DEBUG,
-    /** Placeholder widget for future feature expansion. */
+    /** Demonstration widget displaying placeholder greeting. */
     HELLO_WORLD
 }
 
@@ -105,13 +106,18 @@ data class SpeedometerUiState(
  * @param locationClient Optional client for location updates (defaults to a new [LocationClient]).
  * @param sensorClient Optional client for sensor updates (defaults to a new [SensorClient]).
  * @param settingsRepository Optional repository for settings (defaults to a new [SettingsRepository]).
+ * @param coroutineScope Optional coroutine scope override for background streams (defaults to [viewModelScope]).
  */
 class SpeedometerViewModel(
     application: Application,
     private val locationClient: LocationClient = LocationClient(application),
     private val sensorClient: SensorClient = SensorClient(application),
-    private val settingsRepository: SettingsRepository = SettingsRepository(application)
+    private val settingsRepository: SettingsRepository = SettingsRepository(application),
+    private val coroutineScope: CoroutineScope? = null
 ) : AndroidViewModel(application) {
+
+    private val scope: CoroutineScope
+        get() = coroutineScope ?: viewModelScope
 
     private val _uiState = MutableStateFlow(SpeedometerUiState())
     /** StateFlow emitting current location metrics, sensor readings, and tracking status. */
@@ -234,7 +240,7 @@ class SpeedometerViewModel(
                     provider = location.provider ?: "Unknown"
                 )
             }
-            .launchIn(viewModelScope)
+            .launchIn(scope)
 
         sensorClient.getSensorUpdates()
             .onEach { sensorData ->
@@ -254,6 +260,6 @@ class SpeedometerViewModel(
                     heading = activeHeading
                 )
             }
-            .launchIn(viewModelScope)
+            .launchIn(scope)
     }
 }
