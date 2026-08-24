@@ -25,6 +25,18 @@ import kotlinx.coroutines.flow.asStateFlow
 
 enum class SpeedUnit { KMH, MPH, MS }
 
+enum class WidgetSpan(val colSpan: Int, val heightDp: Int, val label: String) {
+    HALF(colSpan = 1, heightDp = 160, label = "1x1"),
+    FULL_WIDTH(colSpan = 2, heightDp = 180, label = "2x1"),
+    LARGE(colSpan = 2, heightDp = 280, label = "2x2");
+
+    fun next(): WidgetSpan = when (this) {
+        HALF -> FULL_WIDTH
+        FULL_WIDTH -> LARGE
+        LARGE -> HALF
+    }
+}
+
 /**
  * A simple repository for managing user preferences using SharedPreferences.
  * Exposes settings as StateFlows so the Compose UI can react instantly.
@@ -43,17 +55,17 @@ class SettingsRepository(private val prefs: SharedPreferences) {
     private val _isEditMode = MutableStateFlow(prefs.getBoolean("edit_mode", false))
     val isEditMode: StateFlow<Boolean> = _isEditMode.asStateFlow()
 
-    private val _widgetHeights = MutableStateFlow(
-        prefs.getString("widget_heights", null)?.split(",")?.mapNotNull {
+    private val _widgetSpans = MutableStateFlow(
+        prefs.getString("widget_spans", null)?.split(",")?.mapNotNull {
             val parts = it.split(":")
             if (parts.size == 2) {
                 try {
-                    parts[0] to parts[1].toInt()
+                    parts[0] to WidgetSpan.valueOf(parts[1])
                 } catch (_: Exception) { null }
             } else null
         }?.toMap() ?: emptyMap()
     )
-    val widgetHeights: StateFlow<Map<String, Int>> = _widgetHeights.asStateFlow()
+    val widgetSpans: StateFlow<Map<String, WidgetSpan>> = _widgetSpans.asStateFlow()
 
     private val _speedUnit = MutableStateFlow(
         try {
@@ -84,12 +96,12 @@ class SettingsRepository(private val prefs: SharedPreferences) {
         _speedUnit.value = unit
     }
 
-    fun setWidgetHeight(widgetName: String, heightDp: Int) {
-        val newMap = _widgetHeights.value.toMutableMap()
-        newMap[widgetName] = heightDp
-        _widgetHeights.value = newMap
-        val str = newMap.entries.joinToString(",") { "${it.key}:${it.value}" }
-        prefs.edit { putString("widget_heights", str) }
+    fun setWidgetSpan(widgetName: String, span: WidgetSpan) {
+        val newMap = _widgetSpans.value.toMutableMap()
+        newMap[widgetName] = span
+        _widgetSpans.value = newMap
+        val str = newMap.entries.joinToString(",") { "${it.key}:${it.value.name}" }
+        prefs.edit { putString("widget_spans", str) }
     }
 
     fun getActiveWidgets(defaultList: List<String>): List<String> {
@@ -108,8 +120,9 @@ class SettingsRepository(private val prefs: SharedPreferences) {
     fun clearLayout() {
         prefs.edit {
             remove("active_widgets")
+            remove("widget_spans")
             remove("widget_heights")
         }
-        _widgetHeights.value = emptyMap()
+        _widgetSpans.value = emptyMap()
     }
 }

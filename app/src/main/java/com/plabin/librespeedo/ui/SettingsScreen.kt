@@ -64,11 +64,11 @@ import androidx.compose.ui.unit.sp
 fun SettingsScreen(
     isOledTheme: Boolean,
     isKeepScreenOn: Boolean,
-    isEditMode: Boolean,
+    isEditMode: Boolean = false,
     onOledThemeChanged: (Boolean) -> Unit,
     onKeepScreenOnChanged: (Boolean) -> Unit,
-    onEditModeChanged: (Boolean) -> Unit,
-    onResetLayout: () -> Unit,
+    onEditModeChanged: (Boolean) -> Unit = {},
+    onResetLayout: () -> Unit = {},
     onNavigateBack: () -> Unit,
     onNavigateToAbout: () -> Unit,
     modifier: Modifier = Modifier
@@ -79,7 +79,7 @@ fun SettingsScreen(
         AlertDialog(
             onDismissRequest = { showResetDialog = false },
             title = { Text("Reset Layout") },
-            text = { Text("Are you sure you want to reset your dashboard layout? All custom widgets and heights will be lost.") },
+            text = { Text("Are you sure you want to reset your dashboard layout? All custom widgets and size configurations will be lost.") },
             confirmButton = {
                 TextButton(
                     onClick = {

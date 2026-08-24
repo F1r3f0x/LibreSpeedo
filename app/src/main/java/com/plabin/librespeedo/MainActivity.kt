@@ -78,7 +78,7 @@ class MainActivity : ComponentActivity() {
             val isKeepScreenOn by settingsRepository.isKeepScreenOn.collectAsState()
             val isEditMode by settingsRepository.isEditMode.collectAsState()
             val speedUnit by settingsRepository.speedUnit.collectAsState()
-            val widgetHeights by viewModel.widgetHeights.collectAsState()
+            val widgetSpans by viewModel.widgetSpans.collectAsState()
             
             val navController = rememberNavController()
 
@@ -98,11 +98,11 @@ class MainActivity : ComponentActivity() {
                             activeWidgets = activeWidgets,
                             isEditMode = isEditMode,
                             speedUnit = speedUnit,
-                            widgetHeights = widgetHeights,
+                            widgetSpans = widgetSpans,
                             onReorderWidget = viewModel::reorderWidget,
                             onAddWidget = viewModel::addWidget,
                             onRemoveWidget = viewModel::removeWidget,
-                            onWidgetHeightChange = viewModel::setWidgetHeight,
+                            onWidgetSpanChange = viewModel::setWidgetSpan,
                             onSpeedUnitChange = { settingsRepository.setSpeedUnit(it) },
                             onSettingsClick = { navController.navigate("settings") },
                             modifier = Modifier.fillMaxSize()

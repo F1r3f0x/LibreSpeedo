@@ -83,17 +83,17 @@ class SettingsRepositoryTest {
     }
 
     @Test
-    fun setWidgetHeight_updatesStateAndPreferences() {
-        assertTrue(repository.widgetHeights.value.isEmpty())
-        repository.setWidgetHeight("SPEEDOMETER", 250)
-        assertEquals(250, repository.widgetHeights.value["SPEEDOMETER"])
-        assertEquals("SPEEDOMETER:250", fakePrefs.getString("widget_heights", ""))
+    fun setWidgetSpan_updatesStateAndPreferences() {
+        assertTrue(repository.widgetSpans.value.isEmpty())
+        repository.setWidgetSpan("SPEEDOMETER", WidgetSpan.FULL_WIDTH)
+        assertEquals(WidgetSpan.FULL_WIDTH, repository.widgetSpans.value["SPEEDOMETER"])
+        assertEquals("SPEEDOMETER:FULL_WIDTH", fakePrefs.getString("widget_spans", ""))
         
-        repository.setWidgetHeight("COMPASS", 150)
-        assertEquals(250, repository.widgetHeights.value["SPEEDOMETER"])
-        assertEquals(150, repository.widgetHeights.value["COMPASS"])
-        assertTrue(fakePrefs.getString("widget_heights", "")!!.contains("SPEEDOMETER:250"))
-        assertTrue(fakePrefs.getString("widget_heights", "")!!.contains("COMPASS:150"))
+        repository.setWidgetSpan("COMPASS", WidgetSpan.HALF)
+        assertEquals(WidgetSpan.FULL_WIDTH, repository.widgetSpans.value["SPEEDOMETER"])
+        assertEquals(WidgetSpan.HALF, repository.widgetSpans.value["COMPASS"])
+        assertTrue(fakePrefs.getString("widget_spans", "")!!.contains("SPEEDOMETER:FULL_WIDTH"))
+        assertTrue(fakePrefs.getString("widget_spans", "")!!.contains("COMPASS:HALF"))
     }
 
     @Test
@@ -110,13 +110,13 @@ class SettingsRepositoryTest {
     @Test
     fun clearLayout_removesLayoutPreferences() {
         repository.setActiveWidgets(listOf("DEBUG"))
-        repository.setWidgetHeight("SPEEDOMETER", 300)
+        repository.setWidgetSpan("SPEEDOMETER", WidgetSpan.LARGE)
         
         repository.clearLayout()
         
         assertFalse(fakePrefs.contains("active_widgets"))
-        assertFalse(fakePrefs.contains("widget_heights"))
-        assertTrue(repository.widgetHeights.value.isEmpty())
+        assertFalse(fakePrefs.contains("widget_spans"))
+        assertTrue(repository.widgetSpans.value.isEmpty())
     }
 }
 

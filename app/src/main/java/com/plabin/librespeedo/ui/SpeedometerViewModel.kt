@@ -20,6 +20,7 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.plabin.librespeedo.data.SettingsRepository
+import com.plabin.librespeedo.data.WidgetSpan
 import com.plabin.librespeedo.location.LocationClient
 import com.plabin.librespeedo.sensors.SensorClient
 import com.plabin.librespeedo.utils.SpeedConverter
@@ -95,9 +96,9 @@ class SpeedometerViewModel(application: Application) : AndroidViewModel(applicat
             .takeIf { it.isNotEmpty() } ?: defaultWidgets
     )
     val activeWidgets: StateFlow<List<WidgetType>> = _activeWidgets.asStateFlow()
-    val widgetHeights: StateFlow<Map<String, Int>> = settingsRepository.widgetHeights
+    val widgetSpans: StateFlow<Map<String, WidgetSpan>> = settingsRepository.widgetSpans
 
-    fun setWidgetHeight(widget: WidgetType, heightDp: Int) = settingsRepository.setWidgetHeight(widget.name, heightDp)
+    fun setWidgetSpan(widget: WidgetType, span: WidgetSpan) = settingsRepository.setWidgetSpan(widget.name, span)
 
     private fun saveWidgets() {
         settingsRepository.setActiveWidgets(_activeWidgets.value.map { it.name })
