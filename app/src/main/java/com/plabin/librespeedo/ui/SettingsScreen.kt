@@ -69,14 +69,14 @@ import androidx.compose.ui.unit.sp
 fun SettingsScreen(
     isOledTheme: Boolean,
     isKeepScreenOn: Boolean,
-    isEditMode: Boolean = false,
     onOledThemeChanged: (Boolean) -> Unit,
     onKeepScreenOnChanged: (Boolean) -> Unit,
-    onEditModeChanged: (Boolean) -> Unit = {},
-    onResetLayout: () -> Unit = {},
     onNavigateBack: () -> Unit,
     onNavigateToAbout: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isEditMode: Boolean = false,
+    onEditModeChanged: (Boolean) -> Unit = {},
+    onResetLayout: () -> Unit = {}
 ) {
     var showResetDialog by remember { mutableStateOf(false) }
 
@@ -192,16 +192,18 @@ fun SettingsScreen(
  * @param description Detailed secondary explanation text.
  * @param isChecked Current state of the switch toggle.
  * @param onCheckedChange Callback when the switch is clicked.
+ * @param modifier Optional [Modifier] for this settings row.
  */
 @Composable
 fun SettingRow(
     title: String,
     description: String,
     isChecked: Boolean,
-    onCheckedChange: (Boolean) -> Unit
+    onCheckedChange: (Boolean) -> Unit,
+    modifier: Modifier = Modifier
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {

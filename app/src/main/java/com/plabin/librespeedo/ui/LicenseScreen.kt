@@ -57,16 +57,16 @@ fun LicenseScreen(
     onNavigateBack: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val context = LocalContext.current
+    val appContext = LocalContext.current.applicationContext
     var licenseText by remember { mutableStateOf("Loading license...") }
 
     LaunchedEffect(Unit) {
         withContext(Dispatchers.IO) {
             try {
-                licenseText = context.resources.openRawResource(R.raw.license)
+                licenseText = appContext.resources.openRawResource(R.raw.license)
                     .bufferedReader()
                     .use { it.readText() }
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 licenseText = "Could not load license file."
             }
         }

@@ -70,11 +70,11 @@ data class SensorData(
  *
  * @param context Application or activity context used to access the [SensorManager] system service.
  */
-class SensorClient(context: Context) {
-    private val sensorManager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
-    private val accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
-    private val gyroscope = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE)
-    private val magneticField = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD)
+open class SensorClient(context: Context) {
+    private val sensorManager by lazy { context.getSystemService(Context.SENSOR_SERVICE) as SensorManager }
+    private val accelerometer by lazy { sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER) }
+    private val gyroscope by lazy { sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE) }
+    private val magneticField by lazy { sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD) }
 
     /**
      * Subscribes to hardware sensor updates and emits filtered readings and computed azimuth.
@@ -85,7 +85,7 @@ class SensorClient(context: Context) {
      *
      * @return A [Flow] emitting updated [SensorData] snapshots.
      */
-    fun getSensorUpdates(): Flow<SensorData> = callbackFlow {
+    open fun getSensorUpdates(): Flow<SensorData> = callbackFlow {
         val currentAccel = floatArrayOf(0f, 0f, 0f)
         val currentGyro = floatArrayOf(0f, 0f, 0f)
         val currentMag = floatArrayOf(0f, 0f, 0f)

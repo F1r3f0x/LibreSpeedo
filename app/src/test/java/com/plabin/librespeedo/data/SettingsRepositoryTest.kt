@@ -145,6 +145,40 @@ class SettingsRepositoryTest {
         assertFalse(fakePrefs.contains("widget_spans"))
         assertTrue(repository.widgetSpans.value.isEmpty())
     }
+
+    /**
+     * Verifies that malformed, corrupted, or partial widget span strings in preferences
+     * are safely skipped without crashing.
+     */
+    @Test
+    fun widgetSpans_handlesCorruptedAndMalformedStrings() {
+        fakePrefs.putString("widget_spans", "SPEEDOMETER:INVALID_SPAN,CORRUPTED_ENTRY,COMPASS:HALF,:LARGE,VALID_NO_SPAN:")
+        val repoWithCorruptedData = SettingsRepository(fakePrefs)
+
+        val spans = repoWithCorruptedData.widgetSpans.value
+        assertEquals(1, spans.size)
+        assertEquals(WidgetSpan.HALF, spans["COMPASS"])
+    }
+
+    /**
+     * Verifies that unknown or corrupted speed unit preference strings fall back to KMH safely.
+     */
+    @Test
+    fun speedUnit_handlesUnknownOrCorruptedPreference() {
+        fakePrefs.putString("speed_unit", "LIGHT_SPEED")
+        val repoWithCorruptedData = SettingsRepository(fakePrefs)
+        assertEquals(SpeedUnit.KMH, repoWithCorruptedData.speedUnit.value)
+    }
+
+    /**
+     * Verifies that getActiveWidgets returns default list when active_widgets is empty string.
+     */
+    @Test
+    fun getActiveWidgets_emptyString_returnsDefaultList() {
+        fakePrefs.putString("active_widgets", "")
+        val defaultList = listOf("SPEEDOMETER")
+        assertEquals(defaultList, repository.getActiveWidgets(defaultList))
+    }
 }
 
 /**

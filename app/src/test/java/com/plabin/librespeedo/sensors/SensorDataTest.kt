@@ -53,4 +53,44 @@ class SensorDataTest {
         assertArrayEquals(mag, data.magneticField, 0.001f)
         assertEquals(azimuth, data.azimuth, 0.001f)
     }
+
+    /**
+     * Verifies equality comparisons across all branches of custom equals implementation.
+     */
+    @Test
+    fun sensorData_equals_handlesAllBranches() {
+        val base = SensorData(
+            accelerometer = floatArrayOf(1f, 2f, 3f),
+            gyroscope = floatArrayOf(4f, 5f, 6f),
+            magneticField = floatArrayOf(7f, 8f, 9f),
+            azimuth = 45f
+        )
+        val identical = SensorData(
+            accelerometer = floatArrayOf(1f, 2f, 3f),
+            gyroscope = floatArrayOf(4f, 5f, 6f),
+            magneticField = floatArrayOf(7f, 8f, 9f),
+            azimuth = 45f
+        )
+        val diffAccel = base.copy(accelerometer = floatArrayOf(9f, 2f, 3f))
+        val diffGyro = base.copy(gyroscope = floatArrayOf(4f, 9f, 6f))
+        val diffMag = base.copy(magneticField = floatArrayOf(7f, 8f, 1f))
+        val diffAzimuth = base.copy(azimuth = 90f)
+
+        // Reflexive
+        org.junit.Assert.assertTrue(base == base)
+        // Identical values
+        org.junit.Assert.assertTrue(base == identical)
+        // Equal hashCodes
+        assertEquals(base.hashCode(), identical.hashCode())
+
+        // Non-equal cases
+        org.junit.Assert.assertFalse(base == diffAccel)
+        org.junit.Assert.assertFalse(base == diffGyro)
+        org.junit.Assert.assertFalse(base == diffMag)
+        org.junit.Assert.assertFalse(base == diffAzimuth)
+
+        // Null and different class checks
+        org.junit.Assert.assertFalse(base.equals(null))
+        org.junit.Assert.assertFalse(base.equals("OtherClass"))
+    }
 }

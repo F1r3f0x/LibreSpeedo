@@ -95,7 +95,7 @@ class SettingsRepository(private val prefs: SharedPreferences) {
     private val _widgetSpans = MutableStateFlow(
         prefs.getString("widget_spans", null)?.split(",")?.mapNotNull {
             val parts = it.split(":")
-            if (parts.size == 2) {
+            if (parts.size == 2 && parts[0].isNotBlank()) {
                 try {
                     parts[0] to WidgetSpan.valueOf(parts[1])
                 } catch (_: Exception) { null }

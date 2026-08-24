@@ -102,12 +102,16 @@ data class SpeedometerUiState(
  * [SensorClient], and [SettingsRepository].
  *
  * @param application The application instance.
+ * @param locationClient Optional client for location updates (defaults to a new [LocationClient]).
+ * @param sensorClient Optional client for sensor updates (defaults to a new [SensorClient]).
+ * @param settingsRepository Optional repository for settings (defaults to a new [SettingsRepository]).
  */
-class SpeedometerViewModel(application: Application) : AndroidViewModel(application) {
-
-    private val locationClient = LocationClient(application)
-    private val sensorClient = SensorClient(application)
-    private val settingsRepository = SettingsRepository(application)
+class SpeedometerViewModel(
+    application: Application,
+    private val locationClient: LocationClient = LocationClient(application),
+    private val sensorClient: SensorClient = SensorClient(application),
+    private val settingsRepository: SettingsRepository = SettingsRepository(application)
+) : AndroidViewModel(application) {
 
     private val _uiState = MutableStateFlow(SpeedometerUiState())
     /** StateFlow emitting current location metrics, sensor readings, and tracking status. */
