@@ -58,6 +58,7 @@ class SpeedometerScreenTest {
         )
         val allWidgets = listOf(
             WidgetType.SPEEDOMETER,
+            WidgetType.ANALOG_SPEEDOMETER,
             WidgetType.COMPASS,
             WidgetType.ANALOG_COMPASS,
             WidgetType.CHRONOMETER,
@@ -88,7 +89,7 @@ class SpeedometerScreenTest {
         assertTrue(settingsClicked)
 
         // Verify widgets are rendered
-        composeTestRule.onNodeWithText("km/h").assertExists()
+        composeTestRule.onAllNodesWithText("km/h").assertCountEquals(2) // Digital + Analog speedometer
         composeTestRule.onNodeWithText("Current Position").assertExists()
         composeTestRule.onNodeWithText("N").assertExists()
         composeTestRule.onNodeWithText("Chronometer").assertExists()
@@ -122,9 +123,9 @@ class SpeedometerScreenTest {
 
         // Open Add Component menu via FAB
         composeTestRule.onNodeWithContentDescription("Add Component").performClick()
-        composeTestRule.onNodeWithText("ANALOG_COMPASS").assertExists()
-        composeTestRule.onNodeWithText("ANALOG_COMPASS").performClick()
-        assertEquals(WidgetType.ANALOG_COMPASS, addedWidget)
+        composeTestRule.onNodeWithText("ANALOG_SPEEDOMETER").assertExists()
+        composeTestRule.onNodeWithText("ANALOG_SPEEDOMETER").performClick()
+        assertEquals(WidgetType.ANALOG_SPEEDOMETER, addedWidget)
 
         // Click Remove on the first widget
         val removeButtons = composeTestRule.onAllNodes(hasContentDescription("Remove Widget"))
@@ -148,7 +149,7 @@ class SpeedometerScreenTest {
         composeTestRule.setContent {
             SpeedometerScreen(
                 uiState = SpeedometerUiState(speedKmh = 50f),
-                activeWidgets = listOf(WidgetType.SPEEDOMETER),
+                activeWidgets = listOf(WidgetType.SPEEDOMETER, WidgetType.ANALOG_SPEEDOMETER),
                 isEditMode = true,
                 speedUnit = SpeedUnit.KMH,
                 widgetSpans = emptyMap(),
@@ -162,7 +163,8 @@ class SpeedometerScreenTest {
         }
 
         // Click on widget settings icon in edit mode
-        composeTestRule.onNodeWithContentDescription("Widget Settings").performClick()
+        val settingsButtons = composeTestRule.onAllNodes(hasContentDescription("Widget Settings"))
+        settingsButtons[0].performClick()
         composeTestRule.onNodeWithText("Speedometer Settings").assertExists()
 
         // Find the RadioButton for MPH by finding all selectable nodes
@@ -173,6 +175,24 @@ class SpeedometerScreenTest {
         }
 
         composeTestRule.onNodeWithText("Done").performClick()
+    }
+
+    @Test
+    fun analogSpeedometerComponent_rendersProperlyAcrossUnitsAndSpans() {
+        val state = SpeedometerUiState(speedKmh = 85.5f)
+
+        composeTestRule.setContent {
+            Column {
+                AnalogSpeedometerComponent(uiState = state, speedUnit = SpeedUnit.KMH, span = WidgetSpan.FULL_WIDTH)
+                AnalogSpeedometerComponent(uiState = state, speedUnit = SpeedUnit.MPH, span = WidgetSpan.HALF)
+                AnalogSpeedometerComponent(uiState = state, speedUnit = SpeedUnit.MS, span = WidgetSpan.LARGE)
+            }
+        }
+
+        composeTestRule.onNodeWithText("85.5").assertExists()
+        composeTestRule.onNodeWithText("km/h").assertExists()
+        composeTestRule.onNodeWithText("mph").assertExists()
+        composeTestRule.onNodeWithText("m/s").assertExists()
     }
 
     @Test

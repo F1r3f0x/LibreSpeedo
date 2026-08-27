@@ -55,6 +55,7 @@ import com.plabin.librespeedo.ui.theme.LibreSpeedoTheme
  */
 fun getDefaultWidgetSpan(widget: WidgetType): WidgetSpan = when (widget) {
     WidgetType.SPEEDOMETER -> WidgetSpan.FULL_WIDTH
+    WidgetType.ANALOG_SPEEDOMETER -> WidgetSpan.FULL_WIDTH
     WidgetType.COMPASS -> WidgetSpan.HALF
     WidgetType.ANALOG_COMPASS -> WidgetSpan.FULL_WIDTH
     WidgetType.CHRONOMETER -> WidgetSpan.FULL_WIDTH
