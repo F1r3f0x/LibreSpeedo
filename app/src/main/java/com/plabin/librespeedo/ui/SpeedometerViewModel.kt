@@ -38,8 +38,12 @@ import kotlinx.coroutines.flow.onEach
 enum class WidgetType {
     /** Primary speedometer display showing numerical speed and unit. */
     SPEEDOMETER,
-    /** Real-time compass rose showing current heading and North pointer. */
+    /** Real-time digital compass showing current heading and North pointer. */
     COMPASS,
+    /** Animated analog compass dial with cardinal points and animated needle. */
+    ANALOG_COMPASS,
+    /** Stopwatch / chronometer widget for timing trips, laps, and durations. */
+    CHRONOMETER,
     /** Displays current GPS coordinates (latitude and longitude). */
     POSITION,
     /** Diagnostic readout of location provider, raw sensor metrics, and accuracy. */
@@ -108,7 +112,7 @@ data class SpeedometerUiState(
  * @param settingsRepository Optional repository for settings (defaults to a new [SettingsRepository]).
  * @param coroutineScope Optional coroutine scope override for background streams (defaults to [viewModelScope]).
  */
-class SpeedometerViewModel(
+class SpeedometerViewModel @JvmOverloads constructor(
     application: Application,
     private val locationClient: LocationClient = LocationClient(application),
     private val sensorClient: SensorClient = SensorClient(application),

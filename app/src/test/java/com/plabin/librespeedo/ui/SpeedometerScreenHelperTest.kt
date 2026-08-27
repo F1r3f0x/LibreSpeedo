@@ -17,11 +17,13 @@
 package com.plabin.librespeedo.ui
 
 import com.plabin.librespeedo.data.WidgetSpan
+import com.plabin.librespeedo.ui.components.formatChronometerTime
+import com.plabin.librespeedo.ui.components.getCardinalDirection
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
 /**
- * Unit tests verifying default widget span mappings and [WidgetType] declarations.
+ * Unit tests verifying default widget span mappings, [WidgetType] declarations, and component utility helpers.
  */
 class SpeedometerScreenHelperTest {
 
@@ -32,6 +34,8 @@ class SpeedometerScreenHelperTest {
     fun getDefaultWidgetSpan_returnsExpectedSpans() {
         assertEquals(WidgetSpan.FULL_WIDTH, getDefaultWidgetSpan(WidgetType.SPEEDOMETER))
         assertEquals(WidgetSpan.HALF, getDefaultWidgetSpan(WidgetType.COMPASS))
+        assertEquals(WidgetSpan.FULL_WIDTH, getDefaultWidgetSpan(WidgetType.ANALOG_COMPASS))
+        assertEquals(WidgetSpan.FULL_WIDTH, getDefaultWidgetSpan(WidgetType.CHRONOMETER))
         assertEquals(WidgetSpan.HALF, getDefaultWidgetSpan(WidgetType.POSITION))
         assertEquals(WidgetSpan.LARGE, getDefaultWidgetSpan(WidgetType.DEBUG))
         assertEquals(WidgetSpan.HALF, getDefaultWidgetSpan(WidgetType.HELLO_WORLD))
@@ -42,11 +46,41 @@ class SpeedometerScreenHelperTest {
      */
     @Test
     fun widgetType_entriesAreValid() {
-        assertEquals(5, WidgetType.entries.size)
+        assertEquals(7, WidgetType.entries.size)
         assertEquals(WidgetType.SPEEDOMETER, WidgetType.valueOf("SPEEDOMETER"))
         assertEquals(WidgetType.COMPASS, WidgetType.valueOf("COMPASS"))
+        assertEquals(WidgetType.ANALOG_COMPASS, WidgetType.valueOf("ANALOG_COMPASS"))
+        assertEquals(WidgetType.CHRONOMETER, WidgetType.valueOf("CHRONOMETER"))
         assertEquals(WidgetType.POSITION, WidgetType.valueOf("POSITION"))
         assertEquals(WidgetType.DEBUG, WidgetType.valueOf("DEBUG"))
         assertEquals(WidgetType.HELLO_WORLD, WidgetType.valueOf("HELLO_WORLD"))
+    }
+
+    /**
+     * Verifies cardinal direction string mapping across all angular sectors.
+     */
+    @Test
+    fun getCardinalDirection_mapsCorrectly() {
+        assertEquals("N", getCardinalDirection(0f))
+        assertEquals("N", getCardinalDirection(350f))
+        assertEquals("N", getCardinalDirection(10f))
+        assertEquals("NE", getCardinalDirection(45f))
+        assertEquals("E", getCardinalDirection(90f))
+        assertEquals("SE", getCardinalDirection(135f))
+        assertEquals("S", getCardinalDirection(180f))
+        assertEquals("SW", getCardinalDirection(225f))
+        assertEquals("W", getCardinalDirection(270f))
+        assertEquals("NW", getCardinalDirection(315f))
+    }
+
+    /**
+     * Verifies stopwatch millisecond time formatting.
+     */
+    @Test
+    fun formatChronometerTime_formatsCorrectly() {
+        assertEquals("00:00.00", formatChronometerTime(0L))
+        assertEquals("00:05.42", formatChronometerTime(5420L))
+        assertEquals("02:15.50", formatChronometerTime(135500L))
+        assertEquals("01:05:30.25", formatChronometerTime(3930250L))
     }
 }
