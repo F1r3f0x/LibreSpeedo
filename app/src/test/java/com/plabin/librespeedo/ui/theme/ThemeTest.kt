@@ -57,45 +57,60 @@ class ThemeTest {
     fun libreSpeedoTheme_darkTheme_appliesDarkColorScheme() {
         var primaryColor: Color? = null
         var backgroundColor: Color? = null
+        var surfaceContainerColor: Color? = null
+        var onSurfaceColor: Color? = null
 
         composeTestRule.setContent {
             LibreSpeedoTheme(darkTheme = true, isOledTheme = false) {
                 primaryColor = MaterialTheme.colorScheme.primary
                 backgroundColor = MaterialTheme.colorScheme.background
+                surfaceContainerColor = MaterialTheme.colorScheme.surfaceContainer
+                onSurfaceColor = MaterialTheme.colorScheme.onSurface
                 Text("Theme Test")
             }
         }
 
         assertEquals(TealPrimary, primaryColor)
         assertEquals(SlateBackground, backgroundColor)
+        assertEquals(SurfaceDark, surfaceContainerColor)
+        assertEquals(TextWhite, onSurfaceColor)
     }
 
     @Test
     fun libreSpeedoTheme_oledTheme_appliesOledColorScheme() {
         var backgroundColor: Color? = null
+        var surfaceContainerColor: Color? = null
 
         composeTestRule.setContent {
             LibreSpeedoTheme(darkTheme = true, isOledTheme = true) {
                 backgroundColor = MaterialTheme.colorScheme.background
+                surfaceContainerColor = MaterialTheme.colorScheme.surfaceContainer
                 Text("OLED Test")
             }
         }
 
         assertEquals(Color.Black, backgroundColor)
+        assertEquals(Color(0xFF121212), surfaceContainerColor)
     }
 
     @Test
     fun libreSpeedoTheme_lightTheme_appliesLightColorScheme() {
         var primaryColor: Color? = null
+        var surfaceContainerColor: Color? = null
+        var onSurfaceColor: Color? = null
 
         composeTestRule.setContent {
             LibreSpeedoTheme(darkTheme = false, isOledTheme = false) {
                 primaryColor = MaterialTheme.colorScheme.primary
+                surfaceContainerColor = MaterialTheme.colorScheme.surfaceContainer
+                onSurfaceColor = MaterialTheme.colorScheme.onSurface
                 Text("Light Test")
             }
         }
 
         assertEquals(TealPrimary, primaryColor)
+        assertEquals(SurfaceDark, surfaceContainerColor)
+        assertEquals(TextWhite, onSurfaceColor)
     }
 
     @Test

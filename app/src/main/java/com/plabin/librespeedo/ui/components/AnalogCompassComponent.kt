@@ -95,9 +95,9 @@ fun AnalogCompassComponent(
     )
 
     val dialSize = when (span) {
-        WidgetSpan.HALF -> 110.dp
-        WidgetSpan.FULL_WIDTH -> 150.dp
-        WidgetSpan.LARGE -> 200.dp
+        WidgetSpan.HALF -> 88.dp
+        WidgetSpan.FULL_WIDTH -> 110.dp
+        WidgetSpan.LARGE -> 175.dp
     }
 
     val primaryColor = MaterialTheme.colorScheme.primary
@@ -111,7 +111,7 @@ fun AnalogCompassComponent(
     val cardinalText = getCardinalDirection(normalizedHeading)
 
     Column(
-        modifier = modifier.fillMaxSize(),
+        modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
