@@ -18,9 +18,7 @@ package com.plabin.librespeedo.ui
 
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.v2.createComposeRule
-import androidx.compose.ui.test.onNodeWithContentDescription
-import androidx.compose.ui.test.onNodeWithText
-import androidx.compose.ui.test.performClick
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -67,6 +65,19 @@ class SettingsScreenTest {
         composeTestRule.onNodeWithText("Reset Dashboard Layout").assertIsDisplayed()
         composeTestRule.onNodeWithText("About LibreSpeedo").assertIsDisplayed()
 
+        // Test toggle switches
+        val switches = composeTestRule.onAllNodes(isToggleable())
+        if (switches.fetchSemanticsNodes().size >= 3) {
+            switches[0].performClick()
+            assertTrue(oledChanged)
+
+            switches[1].performClick()
+            assertTrue(keepScreenOnChanged)
+
+            switches[2].performClick()
+            assertTrue(editModeChanged)
+        }
+
         // Test back navigation
         composeTestRule.onNodeWithContentDescription("Back").performClick()
         assertTrue(backCalled)
@@ -103,6 +114,6 @@ class SettingsScreenTest {
         // Open dialog and click cancel
         composeTestRule.onNodeWithText("Reset Dashboard Layout").performClick()
         composeTestRule.onNodeWithText("Cancel").performClick()
-        org.junit.Assert.assertFalse(resetLayoutCalled)
+        assertFalse(resetLayoutCalled)
     }
 }
