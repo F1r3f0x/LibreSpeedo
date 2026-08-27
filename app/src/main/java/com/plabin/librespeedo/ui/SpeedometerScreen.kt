@@ -18,7 +18,6 @@ package com.plabin.librespeedo.ui
 
 import android.content.res.Configuration
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -26,37 +25,27 @@ import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.AspectRatio
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalLocale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.plabin.librespeedo.R
 import com.plabin.librespeedo.data.SpeedUnit
 import com.plabin.librespeedo.data.WidgetSpan
+import com.plabin.librespeedo.ui.components.WidgetContainer
 import com.plabin.librespeedo.ui.theme.LibreSpeedoTheme
-import com.plabin.librespeedo.utils.SpeedConverter
 
 /**
  * Returns the default [WidgetSpan] size configuration for a given [WidgetType].
@@ -67,6 +56,8 @@ import com.plabin.librespeedo.utils.SpeedConverter
 fun getDefaultWidgetSpan(widget: WidgetType): WidgetSpan = when (widget) {
     WidgetType.SPEEDOMETER -> WidgetSpan.FULL_WIDTH
     WidgetType.COMPASS -> WidgetSpan.HALF
+    WidgetType.ANALOG_COMPASS -> WidgetSpan.FULL_WIDTH
+    WidgetType.CHRONOMETER -> WidgetSpan.FULL_WIDTH
     WidgetType.POSITION -> WidgetSpan.HALF
     WidgetType.DEBUG -> WidgetSpan.LARGE
     WidgetType.HELLO_WORLD -> WidgetSpan.HALF
@@ -323,335 +314,6 @@ fun ReorderableWidgetGrid(
 }
 
 /**
- * Container card for an individual dashboard widget.
- *
- * Provides elevated Material surface, edit-mode action controls (resize button, unit settings,
- * remove button), and active span badge.
- *
- * @param widget The [WidgetType] to display.
- * @param span The active [WidgetSpan] size of the widget.
- * @param uiState Current sensor and location metrics.
- * @param isEditMode True if editing actions (remove, resize, config) should be visible.
- * @param speedUnit Active speed measurement unit.
- * @param onRemove Callback to remove this widget from the active dashboard.
- * @param onToggleSpan Callback to cycle this widget to the next span size.
- * @param onSpeedUnitChange Callback to update the speedometer's unit preference.
- * @param elevation Dynamic elevation applied to the card (e.g. higher when dragged).
- */
-@Composable
-fun WidgetContainer(
-    widget: WidgetType,
-    span: WidgetSpan,
-    uiState: SpeedometerUiState,
-    isEditMode: Boolean,
-    speedUnit: SpeedUnit,
-    onRemove: () -> Unit,
-    onToggleSpan: () -> Unit,
-    onSpeedUnitChange: (SpeedUnit) -> Unit,
-    elevation: Dp
-) {
-    var showSpeedSettings by remember { mutableStateOf(false) }
-
-    if (showSpeedSettings && widget == WidgetType.SPEEDOMETER) {
-        AlertDialog(
-            onDismissRequest = { showSpeedSettings = false },
-            title = { Text("Speedometer Settings") },
-            text = {
-                Column {
-                    Text("Select Unit:")
-                    Spacer(modifier = Modifier.height(8.dp))
-                    SpeedUnit.entries.forEach { unit ->
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 4.dp)
-                        ) {
-                            RadioButton(
-                                selected = speedUnit == unit,
-                                onClick = { onSpeedUnitChange(unit) }
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(text = unit.name)
-                        }
-                    }
-                }
-            },
-            confirmButton = {
-                TextButton(onClick = { showSpeedSettings = false }) {
-                    Text("Done")
-                }
-            }
-        )
-    }
-
-    Card(
-        modifier = Modifier.fillMaxSize(),
-        elevation = CardDefaults.cardElevation(defaultElevation = elevation),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
-    ) {
-        Box(modifier = Modifier.fillMaxSize()) {
-            if (isEditMode) {
-                Surface(
-                    shape = RoundedCornerShape(topStart = 12.dp, bottomEnd = 8.dp),
-                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
-                    modifier = Modifier.align(Alignment.TopStart)
-                ) {
-                    Text(
-                        text = span.label,
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                    )
-                }
-
-                Row(
-                    modifier = Modifier.align(Alignment.TopEnd),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    IconButton(onClick = onToggleSpan) {
-                        Icon(
-                            imageVector = Icons.Default.AspectRatio,
-                            contentDescription = "Resize Widget (${span.label})"
-                        )
-                    }
-                    if (widget == WidgetType.SPEEDOMETER) {
-                        IconButton(onClick = { showSpeedSettings = true }) {
-                            Icon(
-                                imageVector = Icons.Default.Settings,
-                                contentDescription = "Widget Settings"
-                            )
-                        }
-                    }
-                    IconButton(onClick = onRemove) {
-                        Icon(
-                            imageVector = Icons.Default.Close,
-                            contentDescription = "Remove Widget"
-                        )
-                    }
-                }
-            }
-
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(if (isEditMode) PaddingValues(top = 28.dp, start = 12.dp, end = 12.dp, bottom = 12.dp) else PaddingValues(16.dp)),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                when (widget) {
-                    WidgetType.SPEEDOMETER -> SpeedComponent(uiState, speedUnit, span)
-                    WidgetType.COMPASS -> CompassComponent(uiState.heading, span)
-                    WidgetType.POSITION -> PositionComponent(uiState, span)
-                    WidgetType.DEBUG -> DebugComponent(uiState, span)
-                    WidgetType.HELLO_WORLD -> HelloWorldComponent()
-                }
-            }
-        }
-    }
-}
-
-/**
- * Renders the high-contrast digital speedometer readout.
- *
- * Automatically converts raw speed to the selected [SpeedUnit] and dynamically scales
- * typography according to the active [WidgetSpan].
- *
- * @param uiState Current speedometer UI state with raw speed metrics.
- * @param speedUnit Active unit (KMH, MPH, MS).
- * @param span Current card span sizing.
- */
-@Composable
-fun SpeedComponent(uiState: SpeedometerUiState, speedUnit: SpeedUnit, span: WidgetSpan = WidgetSpan.FULL_WIDTH) {
-    val speedRawMs = uiState.speedKmh / 3.6f
-
-    val displaySpeed = when (speedUnit) {
-        SpeedUnit.KMH -> uiState.speedKmh
-        SpeedUnit.MPH -> SpeedConverter.msToMph(speedRawMs)
-        SpeedUnit.MS -> speedRawMs
-    }
-
-    val displayUnitStr = when (speedUnit) {
-        SpeedUnit.KMH -> "km/h"
-        SpeedUnit.MPH -> "mph"
-        SpeedUnit.MS -> "m/s"
-    }
-
-    val speedFontSize = when (span) {
-        WidgetSpan.HALF -> 44.sp
-        WidgetSpan.FULL_WIDTH -> 72.sp
-        WidgetSpan.LARGE -> 84.sp
-    }
-
-    val unitFontSize = when (span) {
-        WidgetSpan.HALF -> 16.sp
-        WidgetSpan.FULL_WIDTH -> 22.sp
-        WidgetSpan.LARGE -> 26.sp
-    }
-
-    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-        Text(
-            text = String.format(LocalLocale.current.platformLocale, "%.1f", displaySpeed),
-            fontSize = speedFontSize,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary,
-            maxLines = 1
-        )
-        Text(
-            text = displayUnitStr,
-            fontSize = unitFontSize,
-            color = MaterialTheme.colorScheme.secondary
-        )
-    }
-}
-
-/**
- * Renders current geographic position (latitude and longitude).
- *
- * @param uiState State containing current latitude and longitude.
- * @param span Current card span sizing for responsive font adjustments.
- */
-@Composable
-fun PositionComponent(uiState: SpeedometerUiState, span: WidgetSpan = WidgetSpan.HALF) {
-    val titleSize = if (span == WidgetSpan.HALF) 13.sp else 16.sp
-    val coordSize = if (span == WidgetSpan.HALF) 12.sp else 15.sp
-
-    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-        Text(
-            text = "Current Position",
-            fontWeight = FontWeight.SemiBold,
-            fontSize = titleSize,
-            maxLines = 1
-        )
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = String.format(LocalLocale.current.platformLocale, "Lat: %.5f", uiState.latitude),
-            fontSize = coordSize,
-            maxLines = 1
-        )
-        Text(
-            text = String.format(LocalLocale.current.platformLocale, "Lng: %.5f", uiState.longitude),
-            fontSize = coordSize,
-            maxLines = 1
-        )
-    }
-}
-
-/**
- * Renders an animated compass needle indicating current heading.
- *
- * @param heading Heading in degrees where 0 is North.
- * @param span Current card span sizing.
- */
-@Composable
-fun CompassComponent(heading: Float, span: WidgetSpan = WidgetSpan.HALF) {
-    val dialSize = when (span) {
-        WidgetSpan.HALF -> 95.dp
-        WidgetSpan.FULL_WIDTH -> 115.dp
-        WidgetSpan.LARGE -> 140.dp
-    }
-    val arrowSize = when (span) {
-        WidgetSpan.HALF -> 36.sp
-        WidgetSpan.FULL_WIDTH -> 44.sp
-        WidgetSpan.LARGE -> 54.sp
-    }
-
-    Box(
-        modifier = Modifier
-            .size(dialSize)
-            .background(color = MaterialTheme.colorScheme.surfaceVariant, shape = CircleShape),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            text = "↑",
-            fontSize = arrowSize,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.rotate(-heading)
-        )
-        Text(
-            text = "N",
-            modifier = Modifier.align(Alignment.TopCenter).padding(4.dp),
-            fontWeight = FontWeight.Bold,
-            fontSize = if (span == WidgetSpan.HALF) 11.sp else 13.sp,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-    }
-}
-
-/**
- * Renders live diagnostics including hardware sensor vectors, GNSS accuracy, altitude, and provider.
- *
- * Automatically enables vertical scrolling when rendered inside compact card spans.
- *
- * @param uiState Current sensor and location metrics.
- * @param span Current card span sizing.
- */
-@Composable
-fun DebugComponent(uiState: SpeedometerUiState, span: WidgetSpan = WidgetSpan.LARGE) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .then(if (span != WidgetSpan.LARGE) Modifier.verticalScroll(rememberScrollState()) else Modifier)
-    ) {
-        Text(
-            text = "Debug Info",
-            color = MaterialTheme.colorScheme.onSurface,
-            fontWeight = FontWeight.Bold,
-            fontSize = if (span == WidgetSpan.HALF) 12.sp else 14.sp
-        )
-        Spacer(modifier = Modifier.height(4.dp))
-        if (uiState.error != null) {
-            Text(text = "Error: ${uiState.error}", color = Color.Red, fontWeight = FontWeight.Bold, fontSize = 11.sp)
-        }
-        DebugRow("Provider", uiState.provider, span)
-        DebugRow("Raw Speed", "${uiState.speedKmh} km/h", span)
-        DebugRow("Coordinates", "${uiState.latitude}, ${uiState.longitude}", span)
-        DebugRow("Heading", "${uiState.heading}°", span)
-        DebugRow("Altitude", "${uiState.altitude} m", span)
-        DebugRow("Accuracy", "±${uiState.accuracy} m", span)
-        DebugRow("Accelerometer", String.format(LocalLocale.current.platformLocale, "%.2f, %.2f, %.2f", uiState.accelX, uiState.accelY, uiState.accelZ), span)
-        DebugRow("Gyroscope", String.format(LocalLocale.current.platformLocale, "%.2f, %.2f, %.2f", uiState.gyroX, uiState.gyroY, uiState.gyroZ), span)
-        DebugRow("Magnetic Field", String.format(LocalLocale.current.platformLocale, "%.2f, %.2f, %.2f", uiState.magX, uiState.magY, uiState.magZ), span)
-    }
-}
-
-/**
- * A single row within the [DebugComponent] showing a label and value pair.
- *
- * @param label The metric name.
- * @param value The formatted metric readout.
- * @param span Current card span sizing for font sizing.
- */
-@Composable
-fun DebugRow(label: String, value: String, span: WidgetSpan = WidgetSpan.LARGE) {
-    val fontSize = if (span == WidgetSpan.HALF) 10.sp else 12.sp
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 1.dp),
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Text(text = label, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f), fontSize = fontSize, maxLines = 1)
-        Text(text = value, color = MaterialTheme.colorScheme.onSurface, fontSize = fontSize, fontWeight = FontWeight.Medium, maxLines = 1)
-    }
-}
-
-/**
- * Placeholder widget component.
- */
-@Composable
-fun HelloWorldComponent() {
-    Text(
-        text = "Hello World!",
-        fontSize = 24.sp,
-        fontWeight = FontWeight.Bold,
-        color = MaterialTheme.colorScheme.primary
-    )
-}
-
-/**
  * Preview composable for [SpeedometerScreen] in Jetpack Compose UI tooling.
  */
 @Preview(showBackground = true)
@@ -666,18 +328,14 @@ fun SpeedometerScreenPreview() {
                 heading = 45f,
                 altitude = 10.5,
                 accuracy = 3.2,
-                provider = "Preview",
-                accelX = 0f,
-                accelY = 0f,
-                accelZ = 9.8f,
-                gyroX = 0f,
-                gyroY = 0f,
-                gyroZ = 0f,
-                magX = 0f,
-                magY = 0f,
-                magZ = 0f
+                provider = "Preview"
             ),
-            activeWidgets = listOf(WidgetType.SPEEDOMETER, WidgetType.HELLO_WORLD, WidgetType.COMPASS, WidgetType.DEBUG),
+            activeWidgets = listOf(
+                WidgetType.SPEEDOMETER,
+                WidgetType.ANALOG_COMPASS,
+                WidgetType.CHRONOMETER,
+                WidgetType.POSITION
+            ),
             isEditMode = true,
             speedUnit = SpeedUnit.KMH,
             widgetSpans = mapOf(),

@@ -36,10 +36,15 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 
 /**
  * Unit tests verifying widget management, reordering, resizing, and state bindings in [SpeedometerViewModel].
  */
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [34])
 class SpeedometerViewModelTest {
 
     private lateinit var fakePrefs: FakeSharedPreferences
@@ -194,6 +199,65 @@ class SpeedometerViewModelTest {
         assertEquals(270f, state.heading, 0.001f)
     }
 
+    @Test
+    fun startTracking_processesLocationUpdates_withHighSpeed_usesGpsBearing() {
+        val location = Location("gps").apply {
+            speed = 10f // 36 km/h (> 3 km/h)
+            bearing = 120f
+            latitude = 33.44
+            longitude = -70.66
+            altitude = 550.0
+            accuracy = 4.5f
+        }
+        fakeLocationClient.flow = flowOf(location)
+
+        viewModel.startTracking()
+
+        val state = viewModel.uiState.value
+        assertEquals(36f, state.speedKmh, 0.001f)
+        assertEquals(120f, state.gpsBearing, 0.001f)
+        assertEquals(120f, state.heading, 0.001f)
+        assertEquals(33.44, state.latitude, 0.0001)
+        assertEquals(-70.66, state.longitude, 0.0001)
+        assertEquals(550.0, state.altitude, 0.0001)
+        assertEquals(4.5, state.accuracy, 0.0001)
+        assertEquals("gps", state.provider)
+    }
+
+    @Test
+    fun startTracking_processesLocationUpdates_withoutOptionalFields() {
+        val location = Location(null as String?).apply {
+            latitude = 10.0
+            longitude = 20.0
+        }
+        fakeLocationClient.flow = flowOf(location)
+
+        viewModel.startTracking()
+
+        val state = viewModel.uiState.value
+        assertEquals(0f, state.speedKmh, 0.001f)
+        assertEquals(0.0, state.altitude, 0.001)
+        assertEquals(0.0, state.accuracy, 0.001)
+        assertEquals("Unknown", state.provider)
+    }
+
+    @Test
+    fun startTracking_sensorUpdates_whenMovingFast_preservesGpsBearing() {
+        val fastLocation = Location("gps").apply {
+            speed = 15f
+            bearing = 180f
+        }
+        val sensorData = SensorData(azimuth = 90f)
+
+        fakeLocationClient.flow = flowOf(fastLocation)
+        fakeSensorClient.flow = flowOf(sensorData)
+
+        viewModel.startTracking()
+
+        val state = viewModel.uiState.value
+        assertEquals(180f, state.heading, 0.001f)
+    }
+
     /**
      * Verifies startTracking error handling when location stream fails.
      */
@@ -206,6 +270,24 @@ class SpeedometerViewModelTest {
         viewModel.startTracking()
         assertFalse(viewModel.uiState.value.isTracking)
         assertEquals("GPS Provider disabled", viewModel.uiState.value.error)
+    }
+
+    @Test
+    fun activeWidgets_withCorruptedPreference_filtersOutInvalidNames() {
+        val app = Application()
+        val prefs = FakeSharedPreferences()
+        prefs.putString("active_widgets", "SPEEDOMETER,INVALID_WIDGET_NAME,COMPASS")
+        val repo = SettingsRepository(prefs)
+        val vm = SpeedometerViewModel(
+            application = app,
+            settingsRepository = repo,
+            coroutineScope = CoroutineScope(Dispatchers.Unconfined)
+        )
+
+        val active = vm.activeWidgets.value
+        assertEquals(2, active.size)
+        assertEquals(WidgetType.SPEEDOMETER, active[0])
+        assertEquals(WidgetType.COMPASS, active[1])
     }
 
     private class FakeLocationClient(context: Context) : LocationClient(context) {
