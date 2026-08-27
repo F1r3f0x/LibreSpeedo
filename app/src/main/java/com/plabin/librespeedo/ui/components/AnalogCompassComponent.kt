@@ -29,10 +29,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.rotate
-import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -64,14 +62,14 @@ fun getCardinalDirection(degrees: Float): String {
  * tick markers, cardinal indicators, and a dual-tone needle.
  *
  * @param heading Current fused bearing/azimuth in degrees (0 = North).
- * @param span Active widget layout span for adaptive sizing.
  * @param modifier Optional layout modifier.
+ * @param span Active widget layout span for adaptive sizing.
  */
 @Composable
 fun AnalogCompassComponent(
     heading: Float,
-    span: WidgetSpan = WidgetSpan.FULL_WIDTH,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    span: WidgetSpan = WidgetSpan.FULL_WIDTH
 ) {
     var accumulatedAngle by remember { mutableFloatStateOf(heading) }
 

@@ -19,7 +19,7 @@ package com.plabin.librespeedo.ui.theme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.unit.sp
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -55,10 +55,10 @@ class ThemeTest {
 
     @Test
     fun libreSpeedoTheme_darkTheme_appliesDarkColorScheme() {
-        var primaryColor: Color? = null
-        var backgroundColor: Color? = null
-        var surfaceContainerColor: Color? = null
-        var onSurfaceColor: Color? = null
+        var primaryColor: Color = Color.Unspecified
+        var backgroundColor: Color = Color.Unspecified
+        var surfaceContainerColor: Color = Color.Unspecified
+        var onSurfaceColor: Color = Color.Unspecified
 
         composeTestRule.setContent {
             LibreSpeedoTheme(darkTheme = true, isOledTheme = false) {
@@ -78,8 +78,8 @@ class ThemeTest {
 
     @Test
     fun libreSpeedoTheme_oledTheme_appliesOledColorScheme() {
-        var backgroundColor: Color? = null
-        var surfaceContainerColor: Color? = null
+        var backgroundColor: Color = Color.Unspecified
+        var surfaceContainerColor: Color = Color.Unspecified
 
         composeTestRule.setContent {
             LibreSpeedoTheme(darkTheme = true, isOledTheme = true) {
@@ -95,9 +95,9 @@ class ThemeTest {
 
     @Test
     fun libreSpeedoTheme_lightTheme_appliesLightColorScheme() {
-        var primaryColor: Color? = null
-        var surfaceContainerColor: Color? = null
-        var onSurfaceColor: Color? = null
+        var primaryColor: Color = Color.Unspecified
+        var surfaceContainerColor: Color = Color.Unspecified
+        var onSurfaceColor: Color = Color.Unspecified
 
         composeTestRule.setContent {
             LibreSpeedoTheme(darkTheme = false, isOledTheme = false) {

@@ -158,7 +158,7 @@ fun WidgetContainer(
                 when (widget) {
                     WidgetType.SPEEDOMETER -> SpeedComponent(uiState, speedUnit, span)
                     WidgetType.COMPASS -> CompassComponent(uiState.heading, span)
-                    WidgetType.ANALOG_COMPASS -> AnalogCompassComponent(uiState.heading, span)
+                    WidgetType.ANALOG_COMPASS -> AnalogCompassComponent(heading = uiState.heading, span = span)
                     WidgetType.CHRONOMETER -> ChronometerComponent(span)
                     WidgetType.POSITION -> PositionComponent(uiState, span)
                     WidgetType.DEBUG -> DebugComponent(uiState, span)
