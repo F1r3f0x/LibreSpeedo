@@ -26,21 +26,21 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
 import com.plabin.librespeedo.data.SettingsRepository
+import com.plabin.librespeedo.ui.AboutScreen
+import com.plabin.librespeedo.ui.LicenseScreen
 import com.plabin.librespeedo.ui.SettingsScreen
 import com.plabin.librespeedo.ui.SpeedometerScreen
 import com.plabin.librespeedo.ui.SpeedometerViewModel
 import com.plabin.librespeedo.ui.theme.LibreSpeedoTheme
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 
 /**
  * The primary entry point for LibreSpeedo.
@@ -73,10 +73,14 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             val uiState by viewModel.uiState.collectAsState()
+            val activeWidgets by viewModel.activeWidgets.collectAsState()
             val isOledTheme by settingsRepository.isOledTheme.collectAsState()
             val isKeepScreenOn by settingsRepository.isKeepScreenOn.collectAsState()
+            val isEditMode by settingsRepository.isEditMode.collectAsState()
+            val speedUnit by settingsRepository.speedUnit.collectAsState()
+            val widgetSpans by viewModel.widgetSpans.collectAsState()
             
-            var showSettings by remember { mutableStateOf(false) }
+            val navController = rememberNavController()
 
             LaunchedEffect(isKeepScreenOn) {
                 if (isKeepScreenOn) {
@@ -87,20 +91,45 @@ class MainActivity : ComponentActivity() {
             }
             
             LibreSpeedoTheme(isOledTheme = isOledTheme) {
-                if (showSettings) {
-                    SettingsScreen(
-                        isOledTheme = isOledTheme,
-                        isKeepScreenOn = isKeepScreenOn,
-                        onOledThemeChanged = { settingsRepository.setOledTheme(it) },
-                        onKeepScreenOnChanged = { settingsRepository.setKeepScreenOn(it) },
-                        onNavigateBack = { showSettings = false }
-                    )
-                } else {
-                    Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                NavHost(navController = navController, startDestination = "speedometer") {
+                    composable("speedometer") {
                         SpeedometerScreen(
                             uiState = uiState,
-                            onSettingsClick = { showSettings = true },
-                            modifier = Modifier.padding(innerPadding)
+                            activeWidgets = activeWidgets,
+                            isEditMode = isEditMode,
+                            speedUnit = speedUnit,
+                            widgetSpans = widgetSpans,
+                            onReorderWidget = viewModel::reorderWidget,
+                            onAddWidget = viewModel::addWidget,
+                            onRemoveWidget = viewModel::removeWidget,
+                            onWidgetSpanChange = viewModel::setWidgetSpan,
+                            onSpeedUnitChange = { settingsRepository.setSpeedUnit(it) },
+                            onSettingsClick = { navController.navigate("settings") },
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
+                    composable("settings") {
+                        SettingsScreen(
+                            isOledTheme = isOledTheme,
+                            isKeepScreenOn = isKeepScreenOn,
+                            isEditMode = isEditMode,
+                            onOledThemeChanged = { settingsRepository.setOledTheme(it) },
+                            onKeepScreenOnChanged = { settingsRepository.setKeepScreenOn(it) },
+                            onEditModeChanged = { settingsRepository.setEditMode(it) },
+                            onResetLayout = viewModel::resetLayout,
+                            onNavigateBack = { navController.popBackStack() },
+                            onNavigateToAbout = { navController.navigate("about") }
+                        )
+                    }
+                    composable("about") {
+                        AboutScreen(
+                            onNavigateBack = { navController.popBackStack() },
+                            onViewLicense = { navController.navigate("license") }
+                        )
+                    }
+                    composable("license") {
+                        LicenseScreen(
+                            onNavigateBack = { navController.popBackStack() }
                         )
                     }
                 }

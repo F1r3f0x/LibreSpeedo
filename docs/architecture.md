@@ -7,11 +7,13 @@ LibreSpeedo is built with modern Android development practices, emphasizing F-Dr
 graph TD
     subgraph "Hardware & OS"
         LM[Android LocationManager]
+        SM[Android SensorManager]
         SP[SharedPreferences]
     end
 
     subgraph "Data Layer"
         LC[LocationClient]
+        SC[SensorClient]
         SR[SettingsRepository]
     end
 
@@ -28,7 +30,9 @@ graph TD
 
     %% Data Flow
     LM -->|Native GPS/Fused Updates| LC
+    SM -->|Hardware Sensor Updates| SC
     LC -->|Flow&lt;Location&gt;| VM
+    SC -->|Flow&lt;SensorData&gt;| VM
     VM -->|StateFlow&lt;SpeedometerUiState&gt;| SS
 
     %% Settings Flow
@@ -36,6 +40,7 @@ graph TD
     SR -->|StateFlow&lt;Boolean&gt;| MA
     SR -->|StateFlow&lt;Boolean&gt;| Theme
     SR -->|StateFlow&lt;Boolean&gt;| SetS
+    VM <-->|Read/Write Layout| SR
 
     %% UI Hierarchy
     MA --> Theme
@@ -54,11 +59,16 @@ When tracking begins, the `LocationClient` checks hardware capabilities and API 
 
 Location updates are wrapped and emitted as a continuous Kotlin `Flow<Location>`.
 
-## 2. Presentation Layer
-* **`SpeedometerViewModel`**: Subscribes to the `LocationClient`'s Flow. It parses raw location metrics (converting speed from m/s to km/h, extracting bearing and altitude), handles runtime exceptions, and exposes a single `SpeedometerUiState` state flow.
-* **`SpeedometerScreen`**: A declarative Jetpack Compose UI that blindly renders the `SpeedometerUiState`. It includes a compass, large speed text, raw coordinates, and a high-contrast debug panel for monitoring sensor accuracy.
+## 2. Sensor Layer (`SensorClient`)
+To complement GPS data, `SensorClient` tracks hardware sensors including `TYPE_ACCELEROMETER`, `TYPE_GYROSCOPE`, and `TYPE_MAGNETIC_FIELD`.
+* **Low-Pass Filter**: A software filter (`ALPHA = 0.15f`) is applied to raw accelerometer and magnetic field data to eliminate high-frequency noise and jitter.
+* **Dynamic Tilt Compensation**: The app dynamically checks the dominant axis of gravity. If the device is held upright (e.g. in a car mount), it remaps the coordinate system using `SensorManager.remapCoordinateSystem()` so the compass calculation remains 100% accurate.
 
-## 3. UI Theming & Branding
+## 3. Presentation Layer
+* **`SpeedometerViewModel`**: Subscribes to both the `LocationClient` and `SensorClient` Flows. It parses raw location metrics, exposes raw sensor data, and implements a **Smart Fused Bearing**: using GPS bearing when moving faster than 3 km/h, and falling back to the hardware compass azimuth when stationary or moving slowly. It also manages the state of the **Modular Dashboard**, persisting the active widget layout via `SettingsRepository`.
+* **`SpeedometerScreen`**: A declarative Jetpack Compose UI built entirely around a responsive 2-column `LazyVerticalGrid`. It supports selectable widget spans (`1x1 Half`, `2x1 Wide`, `2x2 Large`), dynamic size cycling, and a custom drag-and-drop gesture engine for rearranging widgets across the grid.
+
+## 4. UI Theming & Branding
 LibreSpeedo utilizes a custom Material 3 Dark Theme mapping:
 * **TealPrimary (`#236077`)**: Used for primary accents.
 * **AmberAccent (`#F29938`)**: High-visibility warning/accent color.

@@ -1,14 +1,19 @@
-# LibreSpeedo 🚗
+# LibreSpeedo
 
 LibreSpeedo is an open-source, privacy-respecting speedometer and trip logger for Android. Built strictly without proprietary Google Play Services, it is 100% compatible with F-Droid and relies entirely on Android's native location APIs.
 
+**This is a toy project and the code is manily AI assisted. The main use for me is to test AI capabilities (for me) in domains I don't have much knowledge, so be advised.**
+
 ## Features (Prototype)
-- **Accurate Speed Tracking**: Displays live speed in km/h. (TODO: more units)
 - **Native Fused Location**: Leverages Android 12+'s native `FUSED_PROVIDER` for high accuracy without Google Play Services.
-- **Dark-Themed Dashboard**: High-contrast, night-driving friendly Jetpack Compose UI.
-- **2 widgets for now**:
-  - **Compass & Coordinates**: Real-time heading and GPS positioning.
-  - **Debug Panel**: Monitor exactly which hardware provider is active, alongside altitude and accuracy metrics.
+- **Smart Fused Compass**: Fuses hardware sensors (accelerometer & magnetic field) with GPS bearing. Includes tilt-compensation for upright dashboards and a low-pass filter to eliminate jitter.
+- **Modular Dashboard**: A fully customizable 2-column grid interface where you can add, remove, resize (1x1 Half, 2x1 Wide, 2x2 Large), and drag-and-drop widgets dynamically. Current widgets include:
+  - **Speedometer**: High-contrast speed display with customizable units (km/h, mph, m/s).
+  - **Compass**: Real-time heading needle that correctly points North.
+  - **Position**: Raw GPS coordinates.
+  - **Debug Panel**: Monitor exactly which hardware provider is active, alongside altitude, accuracy metrics, and raw sensor data (accel, gyro, mag).
+  - **Hello World**: A simple placeholder for future feature expansion!
+- **Dashboard Management**: A dedicated Edit Mode prevents accidental swipes, while a Reset Dashboard Layout button restores defaults instantly.
 
 ## Architecture & Technical Details
 See the [docs/architecture.md](docs/architecture.md) file for a deep dive into the native Location fallback logic, Kotlin Coroutines Flow implementation, and custom Material 3 theming.
@@ -39,3 +44,6 @@ The compiled APK will be output to `app/build/outputs/apk/debug/app-debug.apk`.
 2. Plug your phone into your computer via USB and accept the debugging prompt on your phone's screen.
 3. In Android Studio, ensure your device is selected in the deployment dropdown next to the green "Run" button at the top toolbar.
 4. Click the green **Run 'app'** button (or press `Shift + F10`). Android Studio will compile, install, and launch LibreSpeedo on your device!
+
+## Credits & Copyright
+- **Logo**: Designed by Tamar Labin Correa (tmlabin99@gmail.com).

@@ -36,9 +36,11 @@ import kotlinx.coroutines.flow.callbackFlow
  *
  * @param context The application or activity context needed to access system services.
  */
-class LocationClient(private val context: Context) {
+open class LocationClient(private val context: Context) {
 
-    private val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+    private val locationManager by lazy {
+        context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+    }
 
     /**
      * Subscribes to location updates and emits them as a flow.
@@ -48,7 +50,7 @@ class LocationClient(private val context: Context) {
      * @throws Exception if no suitable location provider is enabled on the device.
      */
     @SuppressLint("MissingPermission")
-    fun getLocationUpdates(intervalMs: Long): Flow<Location> = callbackFlow {
+    open fun getLocationUpdates(intervalMs: Long): Flow<Location> = callbackFlow {
         val locationListener = object : LocationListener {
             override fun onLocationChanged(location: Location) {
                 trySend(location)

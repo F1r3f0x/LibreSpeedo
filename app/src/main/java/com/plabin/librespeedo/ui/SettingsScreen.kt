@@ -16,6 +16,7 @@
  */
 package com.plabin.librespeedo.ui
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -26,6 +27,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -33,8 +36,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.material3.AlertDialog
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -42,13 +51,18 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 /**
- * A screen for user preferences, such as the OLED theme and Screen Lock toggles.
+ * A screen for user preferences, such as the OLED theme, Screen Lock, and Dashboard Edit toggles.
  *
  * @param isOledTheme Current state of the OLED theme toggle.
- * @param isKeepScreenOn Current state of the screen lock toggle.
+ * @param isKeepScreenOn Current state of the screen wake lock toggle.
+ * @param isEditMode Current state of the dashboard edit mode toggle.
  * @param onOledThemeChanged Callback when the OLED theme switch is toggled.
  * @param onKeepScreenOnChanged Callback when the Keep Screen On switch is toggled.
- * @param onNavigateBack Callback when the back arrow is pressed.
+ * @param onEditModeChanged Callback when the Edit Dashboard switch is toggled.
+ * @param onResetLayout Callback when confirming a dashboard layout reset.
+ * @param onNavigateBack Callback when the top app bar back arrow is pressed.
+ * @param onNavigateToAbout Callback when the About row is clicked.
+ * @param modifier Optional [Modifier] for screen root layout.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -58,8 +72,37 @@ fun SettingsScreen(
     onOledThemeChanged: (Boolean) -> Unit,
     onKeepScreenOnChanged: (Boolean) -> Unit,
     onNavigateBack: () -> Unit,
-    modifier: Modifier = Modifier
+    onNavigateToAbout: () -> Unit,
+    modifier: Modifier = Modifier,
+    isEditMode: Boolean = false,
+    onEditModeChanged: (Boolean) -> Unit = {},
+    onResetLayout: () -> Unit = {}
 ) {
+    var showResetDialog by remember { mutableStateOf(false) }
+
+    if (showResetDialog) {
+        AlertDialog(
+            onDismissRequest = { showResetDialog = false },
+            title = { Text("Reset Layout") },
+            text = { Text("Are you sure you want to reset your dashboard layout? All custom widgets and size configurations will be lost.") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        onResetLayout()
+                        showResetDialog = false
+                    }
+                ) {
+                    Text("Reset")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showResetDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -97,19 +140,70 @@ fun SettingsScreen(
                 isChecked = isKeepScreenOn,
                 onCheckedChange = onKeepScreenOnChanged
             )
+            
+            Spacer(modifier = Modifier.height(24.dp))
+            
+            SettingRow(
+                title = "Edit Dashboard",
+                description = "Enable Edit Mode to rearrange, add, or remove widgets on the main screen.",
+                isChecked = isEditMode,
+                onCheckedChange = onEditModeChanged
+            )
+            
+            Spacer(modifier = Modifier.height(24.dp))
+            
+            Button(
+                onClick = { showResetDialog = true },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Reset Dashboard Layout")
+            }
+            
+            Spacer(modifier = Modifier.height(32.dp))
+            
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onNavigateToAbout() }
+                    .padding(vertical = 16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = "About LibreSpeedo",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                    contentDescription = "About",
+                    tint = MaterialTheme.colorScheme.onBackground
+                )
+            }
         }
     }
 }
 
+/**
+ * Reusable settings row displaying a title, multi-line description, and a togglable [Switch].
+ *
+ * @param title Primary heading text for the preference.
+ * @param description Detailed secondary explanation text.
+ * @param isChecked Current state of the switch toggle.
+ * @param onCheckedChange Callback when the switch is clicked.
+ * @param modifier Optional [Modifier] for this settings row.
+ */
 @Composable
 fun SettingRow(
     title: String,
     description: String,
     isChecked: Boolean,
-    onCheckedChange: (Boolean) -> Unit
+    onCheckedChange: (Boolean) -> Unit,
+    modifier: Modifier = Modifier
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
