@@ -67,7 +67,7 @@ fun WidgetContainer(
 ) {
     var showSpeedSettings by remember { mutableStateOf(false) }
 
-    if (showSpeedSettings && widget == WidgetType.SPEEDOMETER) {
+    if (showSpeedSettings && (widget == WidgetType.SPEEDOMETER || widget == WidgetType.ANALOG_SPEEDOMETER)) {
         AlertDialog(
             onDismissRequest = { showSpeedSettings = false },
             title = { Text("Speedometer Settings") },
@@ -131,7 +131,7 @@ fun WidgetContainer(
                             contentDescription = "Resize Widget (${span.label})"
                         )
                     }
-                    if (widget == WidgetType.SPEEDOMETER) {
+                    if (widget == WidgetType.SPEEDOMETER || widget == WidgetType.ANALOG_SPEEDOMETER) {
                         IconButton(onClick = { showSpeedSettings = true }) {
                             Icon(
                                 imageVector = Icons.Default.Settings,
@@ -157,6 +157,7 @@ fun WidgetContainer(
             ) {
                 when (widget) {
                     WidgetType.SPEEDOMETER -> SpeedComponent(uiState, speedUnit, span)
+                    WidgetType.ANALOG_SPEEDOMETER -> AnalogSpeedometerComponent(uiState, speedUnit, span = span)
                     WidgetType.COMPASS -> CompassComponent(uiState.heading, span)
                     WidgetType.ANALOG_COMPASS -> AnalogCompassComponent(heading = uiState.heading, span = span)
                     WidgetType.CHRONOMETER -> ChronometerComponent(span)

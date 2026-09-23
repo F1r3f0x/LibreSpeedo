@@ -38,6 +38,8 @@ import kotlinx.coroutines.flow.onEach
 enum class WidgetType {
     /** Primary speedometer display showing numerical speed and unit. */
     SPEEDOMETER,
+    /** Analog gauge speedometer with sweeping needle, track arc, and speed readout. */
+    ANALOG_SPEEDOMETER,
     /** Real-time digital compass showing current heading and North pointer. */
     COMPASS,
     /** Animated analog compass dial with cardinal points and animated needle. */
