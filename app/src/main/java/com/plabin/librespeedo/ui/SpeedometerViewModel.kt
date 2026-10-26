@@ -136,6 +136,7 @@ class SpeedometerViewModel @JvmOverloads constructor(
     /** StateFlow emitting current location metrics, sensor readings, and tracking status. */
     val uiState: StateFlow<SpeedometerUiState> = _uiState.asStateFlow()
 
+    val chronometer = ChronometerState(elapsedRealtime)
     private var locationJob: Job? = null
     private var sensorJob: Job? = null
     private var expiryJob: Job? = null

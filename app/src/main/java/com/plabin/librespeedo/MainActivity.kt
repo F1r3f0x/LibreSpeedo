@@ -105,7 +105,8 @@ class MainActivity : ComponentActivity() {
                             onWidgetSpanChange = viewModel::setWidgetSpan,
                             onSpeedUnitChange = { settingsRepository.setSpeedUnit(it) },
                             onSettingsClick = { navController.navigate("settings") },
-                            modifier = Modifier.fillMaxSize()
+                            modifier = Modifier.fillMaxSize(),
+                            chronometerState = viewModel.chronometer
                         )
                     }
                     composable("settings") {
