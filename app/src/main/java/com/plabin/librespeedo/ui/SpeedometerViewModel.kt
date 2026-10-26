@@ -24,6 +24,7 @@ import com.plabin.librespeedo.data.WidgetSpan
 import com.plabin.librespeedo.location.LocationClient
 import com.plabin.librespeedo.sensors.SensorClient
 import com.plabin.librespeedo.utils.SpeedConverter
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -127,6 +128,9 @@ class SpeedometerViewModel @JvmOverloads constructor(
     /** StateFlow emitting current location metrics, sensor readings, and tracking status. */
     val uiState: StateFlow<SpeedometerUiState> = _uiState.asStateFlow()
 
+    private var locationJob: Job? = null
+    private var sensorJob: Job? = null
+
     private val defaultWidgets = listOf(
         WidgetType.SPEEDOMETER,
         WidgetType.COMPASS,
@@ -215,11 +219,11 @@ class SpeedometerViewModel @JvmOverloads constructor(
      * speed into kilometers-per-hour (km/h) and updates the internal [MutableStateFlow].
      */
     fun startTracking() {
-        if (_uiState.value.isTracking) return
+        if (locationJob?.isActive == true) return
         
         _uiState.value = _uiState.value.copy(isTracking = true, error = null)
 
-        locationClient.getLocationUpdates(500L)
+        locationJob = locationClient.getLocationUpdates(500L)
             .catch { e ->
                 _uiState.value = _uiState.value.copy(
                     isTracking = false,
@@ -246,7 +250,8 @@ class SpeedometerViewModel @JvmOverloads constructor(
             }
             .launchIn(scope)
 
-        sensorClient.getSensorUpdates()
+        if (sensorJob?.isActive == true) return
+        sensorJob = sensorClient.getSensorUpdates()
             .onEach { sensorData ->
                 val activeHeading = if (_uiState.value.speedKmh > 3.0f) _uiState.value.gpsBearing else sensorData.azimuth
                 

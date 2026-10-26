@@ -18,11 +18,16 @@ package com.plabin.librespeedo.location
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.BroadcastReceiver
+import android.content.Intent
+import android.content.IntentFilter
 import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
 import android.os.Build
 import android.os.Bundle
+import android.os.Looper
+import androidx.core.content.ContextCompat
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -47,7 +52,7 @@ open class LocationClient(private val context: Context) {
      *
      * @param intervalMs The minimum time interval between location updates, in milliseconds.
      * @return A [Flow] emitting [Location] objects as they arrive.
-     * @throws Exception if no suitable location provider is enabled on the device.
+     * Waits for a provider when location is disabled and reselects it as availability changes.
      */
     @SuppressLint("MissingPermission")
     open fun getLocationUpdates(intervalMs: Long): Flow<Location> = callbackFlow {
@@ -62,37 +67,42 @@ open class LocationClient(private val context: Context) {
             override fun onProviderDisabled(provider: String) {}
         }
 
-        val isFusedEnabled = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && 
-                locationManager.isProviderEnabled(LocationManager.FUSED_PROVIDER)
-        val isGpsEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
-        val isNetworkEnabled = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
-
-        if (isFusedEnabled) {
-            locationManager.requestLocationUpdates(
-                LocationManager.FUSED_PROVIDER,
-                intervalMs,
-                0f,
-                locationListener
-            )
-        } else if (isGpsEnabled) {
-            locationManager.requestLocationUpdates(
-                LocationManager.GPS_PROVIDER,
-                intervalMs,
-                0f,
-                locationListener
-            )
-        } else if (isNetworkEnabled) {
-            locationManager.requestLocationUpdates(
-                LocationManager.NETWORK_PROVIDER,
-                intervalMs,
-                0f,
-                locationListener
-            )
-        } else {
-            close(Exception("No location providers are enabled"))
+        var activeProvider: String? = null
+        fun selectProvider() {
+            try {
+                val providers = buildList {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) add(LocationManager.FUSED_PROVIDER)
+                    add(LocationManager.GPS_PROVIDER)
+                    add(LocationManager.NETWORK_PROVIDER)
+                }
+                val provider = providers.firstOrNull { locationManager.isProviderEnabled(it) }
+                if (provider == activeProvider) return
+                locationManager.removeUpdates(locationListener)
+                activeProvider = null
+                if (provider != null) {
+                    locationManager.requestLocationUpdates(
+                        provider, intervalMs, 0f, locationListener, Looper.getMainLooper()
+                    )
+                    activeProvider = provider
+                }
+            } catch (e: SecurityException) {
+                close(e)
+            }
         }
 
+        val receiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context?, intent: Intent?) = selectProvider()
+        }
+        ContextCompat.registerReceiver(
+            context, receiver,
+            IntentFilter(LocationManager.PROVIDERS_CHANGED_ACTION).apply {
+                addAction(LocationManager.MODE_CHANGED_ACTION)
+            },
+            ContextCompat.RECEIVER_NOT_EXPORTED
+        )
+        selectProvider()
         awaitClose {
+            context.unregisterReceiver(receiver)
             locationManager.removeUpdates(locationListener)
         }
     }

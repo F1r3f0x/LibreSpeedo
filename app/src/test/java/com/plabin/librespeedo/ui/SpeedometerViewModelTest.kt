@@ -25,6 +25,10 @@ import com.plabin.librespeedo.data.WidgetSpan
 import com.plabin.librespeedo.location.LocationClient
 import com.plabin.librespeedo.sensors.SensorClient
 import com.plabin.librespeedo.sensors.SensorData
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -288,6 +292,30 @@ class SpeedometerViewModelTest {
         assertEquals(2, active.size)
         assertEquals(WidgetType.SPEEDOMETER, active[0])
         assertEquals(WidgetType.COMPASS, active[1])
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @Test
+    fun retryAfterLocationError_doesNotDuplicateSensorSubscription() = runTest {
+        var subscriptions = 0
+        fakeLocationClient.flow = flow { throw SecurityException("Permission denied") }
+        fakeSensorClient.flow = flow {
+            subscriptions++
+            awaitCancellation()
+        }
+        val vm = SpeedometerViewModel(
+            Application(), fakeLocationClient, fakeSensorClient, settingsRepository, backgroundScope
+        )
+        vm.startTracking()
+        runCurrent()
+        assertFalse(vm.uiState.value.isTracking)
+        fakeLocationClient.flow = flow { awaitCancellation() }
+        vm.startTracking()
+        runCurrent()
+        vm.startTracking()
+        runCurrent()
+        assertTrue(vm.uiState.value.isTracking)
+        assertEquals(1, subscriptions)
     }
 
     private class FakeLocationClient(context: Context) : LocationClient(context) {
