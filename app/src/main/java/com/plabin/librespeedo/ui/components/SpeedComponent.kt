@@ -52,8 +52,8 @@ import com.plabin.librespeedo.utils.SpeedConverter
 fun SpeedComponent(
     uiState: SpeedometerUiState,
     speedUnit: SpeedUnit,
-    span: WidgetSpan = WidgetSpan.FULL_WIDTH,
     modifier: Modifier = Modifier,
+    span: WidgetSpan = WidgetSpan.FULL_WIDTH,
     style: DigitalSpeedometerStyle = DigitalSpeedometerStyle.STANDARD
 ) {
     val speedRawMs = uiState.speedKmh / 3.6f

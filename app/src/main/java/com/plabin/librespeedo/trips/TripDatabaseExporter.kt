@@ -25,7 +25,7 @@ object TripDatabaseExporter {
                 if (!error.message.orEmpty().contains("syntax error", ignoreCase = true)) throw error
 
                 // Older Android SQLite versions lack VACUUM INTO. The caller serializes
-                // trip writes while we checkpoint WAL and copy the main database file.
+                // trip writes while we run a WAL checkpoint and copy the main database file.
                 sqlite.query("PRAGMA wal_checkpoint(FULL)").use { result ->
                     if (result.moveToFirst() && result.getInt(0) != 0) {
                         throw IOException("The trip database is busy; try exporting again")

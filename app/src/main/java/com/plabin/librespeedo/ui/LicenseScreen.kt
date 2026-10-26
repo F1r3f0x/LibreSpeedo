@@ -62,12 +62,12 @@ fun LicenseScreen(
 
     LaunchedEffect(Unit) {
         withContext(Dispatchers.IO) {
-            try {
-                licenseText = appContext.resources.openRawResource(R.raw.license)
+            licenseText = try {
+                appContext.resources.openRawResource(R.raw.license)
                     .bufferedReader()
                     .use { it.readText() }
             } catch (_: Exception) {
-                licenseText = "Could not load license file."
+                "Could not load license file."
             }
         }
     }

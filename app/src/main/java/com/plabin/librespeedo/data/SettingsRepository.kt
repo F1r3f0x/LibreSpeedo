@@ -248,7 +248,7 @@ class SettingsRepository(private val prefs: SharedPreferences) {
      */
     fun getActiveWidgets(defaultList: List<String>): List<String> {
         val stringList = prefs.getString("active_widgets", null)
-        return if (stringList != null && stringList.isNotEmpty()) {
+        return if (!stringList.isNullOrEmpty()) {
             stringList.split(",")
         } else {
             defaultList

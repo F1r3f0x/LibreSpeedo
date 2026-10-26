@@ -5,7 +5,6 @@ import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
-import android.os.SystemClock
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -38,7 +37,7 @@ data class MotionSample(
     val qualityFlags: Int
 )
 
-/** Timestamped driving motion stream, independent from compass snapshots. */
+/** Timestamped driving motion stream, independent of compass snapshots. */
 class MotionClient(context: Context) {
     private val appContext = context.applicationContext
     private val manager by lazy { appContext.getSystemService(Context.SENSOR_SERVICE) as SensorManager }
@@ -63,9 +62,9 @@ class MotionClient(context: Context) {
         val rotationMatrix = FloatArray(9)
         var rotationNanos = 0L
         var orientationJumpUntilNanos = 0L
-        var gravity = floatArrayOf(0f, 0f, SensorManager.GRAVITY_EARTH)
+        val gravity = floatArrayOf(0f, 0f, SensorManager.GRAVITY_EARTH)
         var gravityNanos = 0L
-        var estimatedGravity = floatArrayOf(0f, 0f, SensorManager.GRAVITY_EARTH)
+        val estimatedGravity = floatArrayOf(0f, 0f, SensorManager.GRAVITY_EARTH)
         val filtered = FloatArray(3)
         var hasFiltered = false
 

@@ -33,6 +33,7 @@ import androidx.compose.ui.unit.sp
 import com.plabin.librespeedo.data.WidgetSpan
 import com.plabin.librespeedo.ui.ChronometerState
 import kotlinx.coroutines.delay
+import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * Formats a duration in milliseconds into a readable stopwatch format `HH:MM:SS.SS` or `MM:SS.SS`.
@@ -62,8 +63,8 @@ fun formatChronometerTime(totalMillis: Long): String {
  */
 @Composable
 fun ChronometerComponent(
-    span: WidgetSpan = WidgetSpan.FULL_WIDTH,
     modifier: Modifier = Modifier,
+    span: WidgetSpan = WidgetSpan.FULL_WIDTH,
     state: ChronometerState = remember { ChronometerState() }
 ) {
     val isRunning = state.isRunning
@@ -75,7 +76,7 @@ fun ChronometerComponent(
         if (isRunning) {
             while (true) {
                 tickingMillis = state.elapsedMillis
-                delay(30L)
+                delay(30.milliseconds)
             }
         }
     }

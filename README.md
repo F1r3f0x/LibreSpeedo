@@ -2,7 +2,7 @@
 
 LibreSpeedo is an open-source, privacy-respecting speedometer and trip logger for Android. Built strictly without proprietary Google Play Services, it is 100% compatible with F-Droid and relies entirely on Android's native location APIs.
 
-**This is a toy project and the code is manily AI assisted. The main use for me is to test AI capabilities (for me) in domains I don't have much knowledge, so be advised.**
+**This is a toy project and the code is mainly AI assisted. The main use for me is to test AI capabilities (for me) in domains I don't have much knowledge, so be advised.**
 
 ## Features (Prototype)
 - **Native Fused Location**: Leverages Android 12+'s native `FUSED_PROVIDER` for high accuracy without Google Play Services.

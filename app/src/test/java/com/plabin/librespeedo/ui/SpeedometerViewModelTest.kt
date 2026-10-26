@@ -46,6 +46,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * Unit tests verifying widget management, reordering, resizing, and state bindings in [SpeedometerViewModel].
@@ -306,8 +307,8 @@ class SpeedometerViewModelTest {
         fakeSensorClient.flow = sensors
         val vm = SpeedometerViewModel(
             ApplicationProvider.getApplicationContext(), fakeLocationClient, fakeSensorClient, settingsRepository,
-            backgroundScope, { testScheduler.currentTime }
-        )
+            backgroundScope
+        ) { testScheduler.currentTime }
         vm.startTracking()
         runCurrent()
         sensors.emit(SensorData(azimuth = 45f))
@@ -316,10 +317,10 @@ class SpeedometerViewModelTest {
         assertTrue(vm.uiState.value.isSpeedAvailable)
         assertEquals(120f, vm.uiState.value.heading, 0f)
 
-        advanceTimeBy(4_999)
+        advanceTimeBy(4_999.milliseconds)
         runCurrent()
         assertTrue(vm.uiState.value.isLocationFresh)
-        advanceTimeBy(1)
+        advanceTimeBy(1.milliseconds)
         runCurrent()
         assertFalse(vm.uiState.value.isLocationFresh)
         assertFalse(vm.uiState.value.isSpeedAvailable)
@@ -333,11 +334,11 @@ class SpeedometerViewModelTest {
         assertTrue(vm.uiState.value.isLocationFresh)
         assertEquals(36f, vm.uiState.value.speedKmh, 0.001f)
         assertEquals(90f, vm.uiState.value.heading, 0f)
-        advanceTimeBy(2_000)
+        advanceTimeBy(2_000.milliseconds)
         locations.emit(Location("gps").apply { speed = 5f; bearing = 90f })
         runCurrent()
         // Cross the previous fix's deadline without expiring its replacement.
-        advanceTimeBy(3_000)
+        advanceTimeBy(3_000.milliseconds)
         runCurrent()
         assertTrue(vm.uiState.value.isLocationFresh)
     }
@@ -349,8 +350,8 @@ class SpeedometerViewModelTest {
         fakeLocationClient.flow = locations
         val vm = SpeedometerViewModel(
             ApplicationProvider.getApplicationContext(), fakeLocationClient, fakeSensorClient, settingsRepository,
-            backgroundScope, { 10_000L + testScheduler.currentTime }
-        )
+            backgroundScope
+        ) { 10_000L + testScheduler.currentTime }
         vm.startTracking()
         runCurrent()
         locations.emit(Location("gps").apply {
@@ -359,7 +360,7 @@ class SpeedometerViewModelTest {
         })
         runCurrent()
         assertTrue(vm.uiState.value.isLocationFresh)
-        advanceTimeBy(1_000)
+        advanceTimeBy(1_000.milliseconds)
         runCurrent()
         assertFalse(vm.uiState.value.isLocationFresh)
         locations.emit(Location("gps").apply {

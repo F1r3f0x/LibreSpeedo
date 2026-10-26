@@ -43,7 +43,6 @@ import com.plabin.librespeedo.ui.SpeedometerScreen
 import com.plabin.librespeedo.ui.SpeedometerViewModel
 import com.plabin.librespeedo.ui.TripHistoryScreen
 import com.plabin.librespeedo.trips.TripEndReason
-import com.plabin.librespeedo.trips.TripDatabaseExporter
 import com.plabin.librespeedo.ui.theme.LibreSpeedoTheme
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable

@@ -84,7 +84,8 @@ class SpeedometerScreenTest {
         }
 
         // Header
-        composeTestRule.onNodeWithText("LibreSpeedo").assertExists()
+        composeTestRule.onNodeWithText("LibreSpeedo").assertDoesNotExist()
+        composeTestRule.onNodeWithContentDescription("GPS disconnected · waiting for a fix").assertExists()
         composeTestRule.onNodeWithContentDescription("Settings").performClick()
         assertTrue(settingsClicked)
 
@@ -95,6 +96,35 @@ class SpeedometerScreenTest {
         composeTestRule.onNodeWithText("Chronometer").assertExists()
         composeTestRule.onNodeWithText("Debug Info").assertExists()
         composeTestRule.onNodeWithText("Hello World!").assertExists()
+    }
+
+    @Test
+    fun dashboardStatusBar_updatesLiveStatuses_andRejectsStaleSpeed() {
+        val state = androidx.compose.runtime.mutableStateOf(SpeedometerUiState())
+        val recording = androidx.compose.runtime.mutableStateOf(false)
+        composeTestRule.setContent {
+            DashboardStatusBar(state.value, recording.value, onSettingsClick = {})
+        }
+
+        composeTestRule.onNodeWithContentDescription("GPS disconnected · waiting for a fix").assertExists()
+        composeTestRule.onNodeWithContentDescription("Movement unknown · speed unavailable").assertExists()
+        composeTestRule.onNodeWithContentDescription("Not recording a trip").assertExists()
+
+        composeTestRule.runOnIdle {
+            state.value = SpeedometerUiState(speedKmh = 30f, isLocationFresh = true, isSpeedAvailable = true)
+            recording.value = true
+        }
+        composeTestRule.onNodeWithContentDescription("GPS connected").assertExists()
+        composeTestRule.onNodeWithContentDescription("Moving").assertExists()
+        composeTestRule.onNodeWithContentDescription("Recording trip").assertExists()
+
+        composeTestRule.runOnIdle { state.value = state.value.copy(speedKmh = 0f) }
+        composeTestRule.onNodeWithContentDescription("Stationary").assertExists()
+
+        composeTestRule.runOnIdle { state.value = state.value.copy(speedKmh = 30f, isLocationFresh = false) }
+        composeTestRule.onNodeWithContentDescription("Moving").assertDoesNotExist()
+        composeTestRule.onNodeWithContentDescription("Movement unknown · speed unavailable").assertExists()
+        composeTestRule.onNodeWithContentDescription("Recording trip").assertExists()
     }
 
     @Test
@@ -293,6 +323,7 @@ class SpeedometerScreenTest {
         composeTestRule.setContent {
             SpeedometerScreenPreview()
         }
-        composeTestRule.onNodeWithText("LibreSpeedo").assertExists()
+        composeTestRule.onNodeWithText("LibreSpeedo").assertDoesNotExist()
+        composeTestRule.onNodeWithContentDescription("GPS disconnected · waiting for a fix").assertExists()
     }
 }

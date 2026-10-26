@@ -49,7 +49,7 @@ class SpeedConverterTest {
     @Test
     fun msToKmh_hundredKmh_convertsCorrectly() {
         // 27.777778 m/s ≈ 100 km/h
-        val result = SpeedConverter.msToKmh(27.777778f)
+        val result = SpeedConverter.msToKmh(100f / 3.6f)
         assertEquals(100f, result, 0.01f)
     }
 

@@ -34,7 +34,7 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
-import org.robolectric.shadows.ShadowSensor
+import org.robolectric.shadows.SensorBuilder
 import org.robolectric.shadows.ShadowSensorManager
 
 /**
@@ -59,9 +59,9 @@ class SensorClientTest {
         sensorManager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
         shadowSensorManager = shadowOf(sensorManager)
 
-        val shadowAccel = ShadowSensor.newInstance(Sensor.TYPE_ACCELEROMETER)
-        val shadowGyro = ShadowSensor.newInstance(Sensor.TYPE_GYROSCOPE)
-        val shadowMag = ShadowSensor.newInstance(Sensor.TYPE_MAGNETIC_FIELD)
+        val shadowAccel = SensorBuilder.newBuilder().setType(Sensor.TYPE_ACCELEROMETER).build()
+        val shadowGyro = SensorBuilder.newBuilder().setType(Sensor.TYPE_GYROSCOPE).build()
+        val shadowMag = SensorBuilder.newBuilder().setType(Sensor.TYPE_MAGNETIC_FIELD).build()
 
         shadowSensorManager.addSensor(shadowAccel)
         shadowSensorManager.addSensor(shadowGyro)

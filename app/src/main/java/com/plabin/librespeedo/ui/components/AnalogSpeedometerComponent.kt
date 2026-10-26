@@ -144,17 +144,15 @@ fun AnalogSpeedometerComponent(
 
     val isSport = style == AnalogSpeedometerStyle.SPORT
     val isMinimal = style == AnalogSpeedometerStyle.MINIMAL
-    val primaryColor = when (style) {
-        AnalogSpeedometerStyle.CLASSIC -> MaterialTheme.colorScheme.primary
-        AnalogSpeedometerStyle.SPORT -> Color(0xFFFFBE55)
-        AnalogSpeedometerStyle.MINIMAL -> Color(0xFFE4F3F5)
-        AnalogSpeedometerStyle.CAT -> Color(0xFF4096B5)
+    val primaryColor = when {
+        isSport -> Color(0xFFFFBE55)
+        isMinimal -> Color(0xFFE4F3F5)
+        else -> MaterialTheme.colorScheme.primary
     }
-    val secondaryColor = when (style) {
-        AnalogSpeedometerStyle.CLASSIC -> MaterialTheme.colorScheme.secondary
-        AnalogSpeedometerStyle.SPORT -> Color(0xFFFF8A50)
-        AnalogSpeedometerStyle.MINIMAL -> Color(0xFF94AEB4)
-        AnalogSpeedometerStyle.CAT -> Color(0xFFD8E6EC)
+    val secondaryColor = when {
+        isSport -> Color(0xFFFF8A50)
+        isMinimal -> Color(0xFF94AEB4)
+        else -> MaterialTheme.colorScheme.secondary
     }
     val tertiaryColor = if (isSport) Color(0xFFFF4D4D) else MaterialTheme.colorScheme.tertiary
     val trackBackgroundColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.2f)

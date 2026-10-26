@@ -41,8 +41,8 @@ import com.plabin.librespeedo.ui.SpeedometerUiState
 @Composable
 fun PositionComponent(
     uiState: SpeedometerUiState,
-    span: WidgetSpan = WidgetSpan.HALF,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    span: WidgetSpan = WidgetSpan.HALF
 ) {
     val titleSize = if (span == WidgetSpan.HALF) 13.sp else 16.sp
     val coordSize = if (span == WidgetSpan.HALF) 12.sp else 15.sp

@@ -80,7 +80,7 @@ private fun TripDetails(
     modifier: Modifier = Modifier
 ) {
     val duration = (trip.endElapsedNanos?.minus(trip.startElapsedNanos)
-        ?: trip.lastCheckpointElapsedNanos - trip.startElapsedNanos).coerceAtLeast(0L)
+        ?: (trip.lastCheckpointElapsedNanos - trip.startElapsedNanos)).coerceAtLeast(0L)
     Column(modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text(DateFormat.getDateTimeInstance(DateFormat.FULL, DateFormat.SHORT).format(Date(trip.startUtcMillis)), style = MaterialTheme.typography.titleMedium)
         Text("${trip.status} · ${trip.endReason ?: trip.origin}", style = MaterialTheme.typography.bodyMedium)
@@ -110,9 +110,9 @@ private fun TripDetails(
         if (samples.isNotEmpty()) {
             HorizontalDivider()
             Text("Speed profile", style = MaterialTheme.typography.titleSmall)
-            TripSparkline(samples, "km/h", value = { it.speedMetersPerSecond?.times(3.6) }, accepted = { it.accepted && it.speedMetersPerSecond != null }, maxGapNanos = 3_000_000_000L)
+            TripSparkline(samples, "km/h", value = { it.speedMetersPerSecond?.times(3.6) }, accepted = { it.accepted && it.speedMetersPerSecond != null })
             Text("Horizontal G profile", style = MaterialTheme.typography.titleSmall)
-            TripSparkline(samples, "G", value = { it.horizontalG }, accepted = { it.horizontalG != null }, maxGapNanos = 3_000_000_000L)
+            TripSparkline(samples, "G", value = { it.horizontalG }, accepted = { it.horizontalG != null })
         }
         HorizontalDivider()
         Text("Detected maneuvers", style = MaterialTheme.typography.titleSmall)
@@ -137,10 +137,10 @@ private fun TripSparkline(
     samples: List<TripSampleEntity>,
     unit: String,
     value: (TripSampleEntity) -> Double?,
-    accepted: (TripSampleEntity) -> Boolean,
-    maxGapNanos: Long
+    accepted: (TripSampleEntity) -> Boolean
 ) {
-    val points = samples.map(value).filterNotNull().filter { it.isFinite() }
+    val maxGapNanos = 3_000_000_000L
+    val points = samples.mapNotNull(value).filter { it.isFinite() }
     val low = points.minOrNull() ?: 0.0
     val high = points.maxOrNull() ?: 0.0
     val lineColor = MaterialTheme.colorScheme.primary
@@ -160,8 +160,8 @@ private fun TripSparkline(
             if (!valid) { hasPoint = false; continue }
             val x0 = (index - 1).toFloat() / (samples.size - 1) * size.width
             val x1 = index.toFloat() / (samples.size - 1) * size.width
-            val y0 = size.height - (((previousValue!! - low) / span).toFloat() * size.height)
-            val y1 = size.height - (((currentValue!! - low) / span).toFloat() * size.height)
+            val y0 = size.height - (((previousValue - low) / span).toFloat() * size.height)
+            val y1 = size.height - (((currentValue - low) / span).toFloat() * size.height)
             if (!hasPoint) path.moveTo(x0, y0) else path.lineTo(x0, y0)
             path.lineTo(x1, y1)
             hasPoint = true

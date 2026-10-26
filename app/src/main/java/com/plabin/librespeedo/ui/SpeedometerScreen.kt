@@ -17,7 +17,6 @@
 package com.plabin.librespeedo.ui
 
 import android.content.res.Configuration
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -27,7 +26,6 @@ import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -36,22 +34,17 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.plabin.librespeedo.R
 import com.plabin.librespeedo.data.AnalogSpeedometerStyle
 import com.plabin.librespeedo.data.DigitalSpeedometerStyle
 import com.plabin.librespeedo.data.SpeedUnit
 import com.plabin.librespeedo.data.WidgetSpan
 import com.plabin.librespeedo.ui.components.WidgetContainer
 import com.plabin.librespeedo.ui.theme.LibreSpeedoTheme
-import com.plabin.librespeedo.trips.TripEntity
-import com.plabin.librespeedo.trips.TripStatus
-import com.plabin.librespeedo.trips.TripEndReason
 import com.plabin.librespeedo.trips.CarConnection
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * Returns the default [WidgetSpan] size configuration for a given [WidgetType].
@@ -102,11 +95,11 @@ fun SpeedometerScreen(
     onWidgetSpanChange: (WidgetType, WidgetSpan) -> Unit,
     onSpeedUnitChange: (SpeedUnit) -> Unit,
     onSettingsClick: () -> Unit,
+    modifier: Modifier = Modifier,
     tripLogger: TripLoggerUiState = TripLoggerUiState(),
     onTripStart: () -> Unit = {},
     onTripFinish: () -> Unit = {},
     onTripHistory: () -> Unit = {},
-    modifier: Modifier = Modifier,
     chronometerState: ChronometerState = remember { ChronometerState() },
     analogStyle: AnalogSpeedometerStyle = AnalogSpeedometerStyle.CLASSIC,
     onAnalogStyleChange: (AnalogSpeedometerStyle) -> Unit = {},
@@ -152,35 +145,12 @@ fun SpeedometerScreen(
                 .padding(horizontal = 16.dp)
         ) {
             Spacer(modifier = Modifier.height(if (isLandscape) 4.dp else 16.dp))
-            Box(modifier = Modifier.fillMaxWidth()) {
-                Row(
-                    modifier = Modifier.align(Alignment.Center),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.gato_1),
-                        contentDescription = "LibreSpeedo Logo",
-                        modifier = Modifier.size(if (isLandscape) 28.dp else 36.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "LibreSpeedo",
-                        fontSize = if (isLandscape) 20.sp else 24.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-                IconButton(
-                    onClick = onSettingsClick,
-                    modifier = Modifier.align(Alignment.CenterEnd)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Settings,
-                        contentDescription = "Settings",
-                        tint = MaterialTheme.colorScheme.onBackground
-                    )
-                }
-            }
-            Spacer(modifier = Modifier.height(if (isLandscape) 8.dp else 24.dp))
+            DashboardStatusBar(
+                uiState = uiState,
+                isRecording = tripLogger.trip != null,
+                onSettingsClick = onSettingsClick
+            )
+            Spacer(modifier = Modifier.height(if (isLandscape) 8.dp else 16.dp))
 
             TripLoggerCard(
                 state = tripLogger,
@@ -224,7 +194,7 @@ private fun TripLoggerCard(
     LaunchedEffect(trip?.id, trip?.startElapsedNanos) {
         while (trip != null) {
             elapsedSeconds = ((android.os.SystemClock.elapsedRealtimeNanos() - trip.startElapsedNanos).coerceAtLeast(0L) / 1_000_000_000L)
-            kotlinx.coroutines.delay(1_000L)
+            kotlinx.coroutines.delay(1.seconds)
         }
     }
     Card(modifier = Modifier.fillMaxWidth()) {
@@ -294,8 +264,8 @@ fun ReorderableWidgetGrid(
     onDigitalStyleChange: (DigitalSpeedometerStyle) -> Unit = {}
 ) {
     var draggedIndex by remember { mutableStateOf<Int?>(null) }
-    var draggedOffsetX by remember { mutableStateOf(0f) }
-    var draggedOffsetY by remember { mutableStateOf(0f) }
+    var draggedOffsetX by remember { mutableFloatStateOf(0f) }
+    var draggedOffsetY by remember { mutableFloatStateOf(0f) }
     val gridState = rememberLazyGridState()
 
     LazyVerticalGrid(

@@ -4,7 +4,7 @@ import kotlin.math.max
 
 enum class MovementState { MOVING, STOPPED, UNKNOWN }
 enum class TripStatus { RECORDING, FINISHED, INTERRUPTED }
-enum class TripEndReason { MANUAL, DISCONNECT_GRACE, AUTOMATION_DISABLED, BACKGROUND, PERMISSION_LOST, RECOVERED, STORAGE_ERROR }
+enum class TripEndReason { MANUAL, DISCONNECT_GRACE, AUTOMATION_DISABLED, BACKGROUND, PERMISSION_LOST, RECOVERED }
 
 /** Timestamped, immutable input to trip calculations. Times use Android elapsed realtime. */
 data class SpeedObservation(
@@ -110,21 +110,22 @@ class TripMetricsAccumulator(private val maxSpeedGapNanos: Long = 3_000_000_000L
                     speed > (3.0 / 3.6) -> MovementState.MOVING
                     else -> null
                 }
-                when {
-                    candidate == movement -> {
+                when (candidate) {
+                    movement -> {
                         addMovementDuration(movement, interval)
                         pendingMovement = null
                         pendingMovementNanos = 0L
                         ambiguousNanos = 0L
                     }
-                    candidate == null && movement != MovementState.UNKNOWN && ambiguousNanos + interval <= 3_000_000_000L -> {
-                        addMovementDuration(movement, interval)
-                        ambiguousNanos += interval
-                    }
-                    candidate == null -> {
-                        unknown += interval
-                        movement = MovementState.UNKNOWN
-                        ambiguousNanos = 0L
+                    null -> {
+                        if (movement != MovementState.UNKNOWN && ambiguousNanos + interval <= 3_000_000_000L) {
+                            addMovementDuration(movement, interval)
+                            ambiguousNanos += interval
+                        } else {
+                            unknown += interval
+                            movement = MovementState.UNKNOWN
+                            ambiguousNanos = 0L
+                        }
                     }
                     else -> {
                         unknown += interval

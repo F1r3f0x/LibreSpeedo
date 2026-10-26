@@ -1,3 +1,11 @@
 <resources>
     <string name="app_name">LibreSpeedo</string>
+    <string name="settings">Settings</string>
+    <string name="status_gps_connected">GPS connected</string>
+    <string name="status_gps_disconnected">GPS disconnected · waiting for a fix</string>
+    <string name="status_moving">Moving</string>
+    <string name="status_stationary">Stationary</string>
+    <string name="status_movement_unknown">Movement unknown · speed unavailable</string>
+    <string name="status_recording">Recording trip</string>
+    <string name="status_not_recording">Not recording a trip</string>
 </resources>

@@ -24,6 +24,7 @@ import android.hardware.SensorManager
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlin.math.abs
 
 /**
  * Encapsulates raw and filtered hardware sensor readings.
@@ -79,7 +80,7 @@ open class SensorClient(context: Context) {
     /**
      * Subscribes to hardware sensor updates and emits filtered readings and computed azimuth.
      *
-     * Applies a low-pass filter (ALPHA = 0.15f) to accelerometer and magnetometer readings
+     * Applies a low-pass filter (alpha = 0.15f) to accelerometer and magnetometer readings
      * to eliminate jitter, dynamically remaps coordinate systems if the device is held upright,
      * and calculates the geomagnetic azimuth.
      *
@@ -94,7 +95,7 @@ open class SensorClient(context: Context) {
         // Smoothing factor for the low-pass filter (0.0 to 1.0)
         // Lower values mean smoother, less sensitive output. This will work for now
         // TODO: Add a message for our current status
-        val ALPHA = 0.15f
+        val alpha = 0.15f
 
         fun applyLowPassFilter(input: FloatArray, output: FloatArray) {
             if (output[0] == 0f && output[1] == 0f && output[2] == 0f) {
@@ -102,7 +103,7 @@ open class SensorClient(context: Context) {
                 return
             }
             for (i in input.indices) {
-                output[i] = output[i] + ALPHA * (input[i] - output[i])
+                output[i] = output[i] + alpha * (input[i] - output[i])
             }
         }
 
@@ -128,7 +129,7 @@ open class SensorClient(context: Context) {
                     if (SensorManager.getRotationMatrix(rotationMatrix, null, currentAccel, currentMag)) {
                         val remappedMatrix = FloatArray(9)
                         // If Y gravity is greater than Z gravity, the phone is held more upright
-                        if (Math.abs(currentAccel[1]) > Math.abs(currentAccel[2])) {
+                        if (abs(currentAccel[1]) > abs(currentAccel[2])) {
                             SensorManager.remapCoordinateSystem(rotationMatrix, SensorManager.AXIS_X, SensorManager.AXIS_Z, remappedMatrix)
                         } else {
                             rotationMatrix.copyInto(remappedMatrix)

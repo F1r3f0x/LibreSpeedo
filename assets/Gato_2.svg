@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-<svg width="100%" height="100%" viewBox="0 0 3000 2000" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:1.5;">
+<svg width="100%" height="100%" viewBox="0 0 3000 2000" version="1.1" xmlns="http://www.w3.org/2000/svg" xml:space="preserve" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:1.5;">
     <g id="Fuego" transform="matrix(1.060682,0,0,1.060682,8.608,61.231392)">
         <g transform="matrix(1,0,0,1,19.380239,59.842674)">
             <path d="M433.307,1212.711C453.941,1097.677 339.922,969.15 339.922,969.15C339.922,969.15 474.489,1087.762 630.453,1086.102C651.205,1085.881 401.433,1059.195 319.17,471.098C318.652,467.392 353.716,529.37 372.42,558.423C424.261,638.948 513.966,740.24 734.214,673.029C743.157,670.3 378.832,787.358 490.375,45.276C491.108,40.402 456.653,509.865 1123.317,447.609C1141.558,445.905 863.915,440.618 869.103,175.236C869.103,175.236 905.419,405.313 1265.988,410.501C1626.557,415.689 1795.417,406.072 1938.088,709.573C1938.088,709.573 804.252,449.217 716.055,1406.606C716.055,1406.606 967.372,1455.641 920.247,1423.326C873.122,1391.01 347.439,1604.244 433.307,1212.711Z" style="fill:url(#_Linear1);"/>

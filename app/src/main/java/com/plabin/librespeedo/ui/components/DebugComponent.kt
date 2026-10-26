@@ -43,8 +43,8 @@ import com.plabin.librespeedo.ui.SpeedometerUiState
 @Composable
 fun DebugComponent(
     uiState: SpeedometerUiState,
-    span: WidgetSpan = WidgetSpan.LARGE,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    span: WidgetSpan = WidgetSpan.LARGE
 ) {
     Column(
         modifier = modifier

@@ -4,7 +4,6 @@ import android.content.Context
 import androidx.room.Dao
 import androidx.room.Database
 import androidx.room.ColumnInfo
-import androidx.room.Delete
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
@@ -103,7 +102,31 @@ data class MotionChunkEntity(
     val source: String,
     @ColumnInfo(defaultValue = "1") val encodingVersion: Int = 1,
     val compressedSamples: ByteArray
-)
+) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is MotionChunkEntity) return false
+        return chunkId == other.chunkId &&
+            tripId == other.tripId &&
+            startElapsedRealtimeNanos == other.startElapsedRealtimeNanos &&
+            endElapsedRealtimeNanos == other.endElapsedRealtimeNanos &&
+            sampleCount == other.sampleCount &&
+            source == other.source &&
+            encodingVersion == other.encodingVersion &&
+            compressedSamples.contentEquals(other.compressedSamples)
+    }
+
+    override fun hashCode(): Int {
+        var result = chunkId.hashCode()
+        result = 31 * result + tripId.hashCode()
+        result = 31 * result + startElapsedRealtimeNanos.hashCode()
+        result = 31 * result + endElapsedRealtimeNanos.hashCode()
+        result = 31 * result + sampleCount
+        result = 31 * result + source.hashCode()
+        result = 31 * result + encodingVersion
+        return 31 * result + compressedSamples.contentHashCode()
+    }
+}
 
 @Entity(
     tableName = "driving_events",

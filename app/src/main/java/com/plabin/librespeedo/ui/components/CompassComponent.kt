@@ -42,8 +42,8 @@ import com.plabin.librespeedo.data.WidgetSpan
 @Composable
 fun CompassComponent(
     heading: Float,
-    span: WidgetSpan = WidgetSpan.HALF,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    span: WidgetSpan = WidgetSpan.HALF
 ) {
     val dialSize = when (span) {
         WidgetSpan.HALF -> 95.dp

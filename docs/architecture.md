@@ -31,15 +31,15 @@ graph TD
     %% Data Flow
     LM -->|Native GPS/Fused Updates| LC
     SM -->|Hardware Sensor Updates| SC
-    LC -->|Flow&lt;Location&gt;| VM
-    SC -->|Flow&lt;SensorData&gt;| VM
-    VM -->|StateFlow&lt;SpeedometerUiState&gt;| SS
+    LC -->|"Flow<Location>"| VM
+    SC -->|"Flow<SensorData>"| VM
+    VM -->|"StateFlow<SpeedometerUiState>"| SS
 
     %% Settings Flow
     SP <-->|Read/Write| SR
-    SR -->|StateFlow&lt;Boolean&gt;| MA
-    SR -->|StateFlow&lt;Boolean&gt;| Theme
-    SR -->|StateFlow&lt;Boolean&gt;| SetS
+    SR -->|"StateFlow<Boolean>"| MA
+    SR -->|"StateFlow<Boolean>"| Theme
+    SR -->|"StateFlow<Boolean>"| SetS
     VM <-->|Read/Write Layout| SR
 
     %% UI Hierarchy
@@ -61,7 +61,7 @@ Location updates are wrapped and emitted as a continuous Kotlin `Flow<Location>`
 
 ## 2. Sensor Layer (`SensorClient`)
 To complement GPS data, `SensorClient` tracks hardware sensors including `TYPE_ACCELEROMETER`, `TYPE_GYROSCOPE`, and `TYPE_MAGNETIC_FIELD`.
-* **Low-Pass Filter**: A software filter (`ALPHA = 0.15f`) is applied to raw accelerometer and magnetic field data to eliminate high-frequency noise and jitter.
+* **Low-Pass Filter**: A software filter (`alpha = 0.15f`) is applied to raw accelerometer and magnetic field data to eliminate high-frequency noise and jitter.
 * **Dynamic Tilt Compensation**: The app dynamically checks the dominant axis of gravity. If the device is held upright (e.g. in a car mount), it remaps the coordinate system using `SensorManager.remapCoordinateSystem()` so the compass calculation remains 100% accurate.
 
 ## 3. Presentation Layer

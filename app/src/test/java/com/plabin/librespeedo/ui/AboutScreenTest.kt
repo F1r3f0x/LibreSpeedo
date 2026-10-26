@@ -60,7 +60,7 @@ class AboutScreenTest {
         composeTestRule.onNodeWithText("View GPLv3 License").performClick()
         assertTrue(licenseClicked)
 
-        // Test clicking github repository link
+        // Test clicking GitHub repository link
         composeTestRule.onNodeWithText("GitHub Repository").performClick()
     }
 }

@@ -178,13 +178,13 @@ fun WidgetContainer(
                 verticalArrangement = Arrangement.Center
             ) {
                 when (widget) {
-                    WidgetType.SPEEDOMETER -> SpeedComponent(uiState, speedUnit, span, style = digitalStyle)
+                    WidgetType.SPEEDOMETER -> SpeedComponent(uiState, speedUnit, span = span, style = digitalStyle)
                     WidgetType.ANALOG_SPEEDOMETER -> AnalogSpeedometerComponent(uiState, speedUnit, span = span, style = analogStyle)
-                    WidgetType.COMPASS -> CompassComponent(uiState.heading, span)
+                    WidgetType.COMPASS -> CompassComponent(uiState.heading, span = span)
                     WidgetType.ANALOG_COMPASS -> AnalogCompassComponent(heading = uiState.heading, span = span)
-                    WidgetType.CHRONOMETER -> ChronometerComponent(span, state = chronometerState)
-                    WidgetType.POSITION -> PositionComponent(uiState, span)
-                    WidgetType.DEBUG -> DebugComponent(uiState, span)
+                    WidgetType.CHRONOMETER -> ChronometerComponent(span = span, state = chronometerState)
+                    WidgetType.POSITION -> PositionComponent(uiState, span = span)
+                    WidgetType.DEBUG -> DebugComponent(uiState, span = span)
                     WidgetType.HELLO_WORLD -> HelloWorldComponent()
                 }
             }

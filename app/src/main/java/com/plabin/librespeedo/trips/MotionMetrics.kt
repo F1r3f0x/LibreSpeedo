@@ -114,7 +114,7 @@ class MotionMetricsAccumulator(private val maxGapNanos: Long = 250_000_000L) {
         val acceptedFilteredHorizontal = filteredHorizontalG.takeIf { horizontal != null }
         if (old != null && dtNanos in 1..maxGapNanos) {
             val previousMagnitude = previousFilteredHorizontalG
-            if (acceptedFilteredHorizontal != null && previousMagnitude != null && observation.accuracyReliable && old.accuracyReliable) {
+            if (acceptedFilteredHorizontal != null && previousMagnitude != null && old.accuracyReliable) {
                 integral += (previousMagnitude + acceptedFilteredHorizontal) * 0.5 * dt
                 horizontalSquaredIntegral += (previousMagnitude * previousMagnitude + acceptedFilteredHorizontal * acceptedFilteredHorizontal) * 0.5 * dt
                 validDuration += dtNanos

@@ -21,7 +21,7 @@ data class DetectedDrivingEvent(
     val peakValue: Double,
     val speedContextMetersPerSecond: Double?,
     val confidence: Double,
-    val detectorVersion: Int = 1
+    val detectorVersion: Int = DrivingEventDetector.VERSION
 ) {
     val durationNanos get() = (endElapsedRealtimeNanos - startElapsedRealtimeNanos).coerceAtLeast(0L)
 }
