@@ -23,7 +23,7 @@ The chronometer has its own start/pause, reset, and lap controls. Its state surv
 
 Settings also offers a pure-black OLED theme and **Keep Screen On** (enabled by default while the app is open).
 
-Current settings integration has a limitation: changes to trip automation, selected car, route storage, mounting confirmation, and retention may not reach the recorder until the app process is fully restarted. After changing these settings, finish any active trip and fully close/relaunch the app before relying on them. Navigating back or rotating alone does not reliably refresh the recorder.
+Settings update without restarting the app, including after rotation. Automation, selected car, and retention changes reach the recorder immediately. Route storage and mounting confirmation are captured when each trip starts; finish the current trip and start another to use new values.
 
 ## Record a trip manually
 

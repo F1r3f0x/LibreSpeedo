@@ -20,7 +20,6 @@ import android.view.WindowManager
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.plabin.librespeedo.MainActivity
-import com.plabin.librespeedo.data.SettingsRepository
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -42,7 +41,7 @@ class KeepScreenOnTest {
     @Test
     fun keepScreenOn_settingToggled_modifiesWindowFlags() {
         val activity = composeTestRule.activity
-        val repository = SettingsRepository(activity)
+        val repository = activity.settingsRepository
 
         // Enable Keep Screen On
         composeTestRule.runOnUiThread {

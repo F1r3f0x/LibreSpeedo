@@ -154,7 +154,7 @@ class SpeedometerViewModel @JvmOverloads constructor(
     application: Application,
     private val locationClient: LocationClient = LocationClient(application),
     private val sensorClient: SensorClient = SensorClient(application),
-    private val settingsRepository: SettingsRepository = SettingsRepository(application),
+    internal val settingsRepository: SettingsRepository = SettingsRepository(application),
     private val coroutineScope: CoroutineScope? = null,
     private val elapsedRealtime: () -> Long = SystemClock::elapsedRealtime
 ) : AndroidViewModel(application) {

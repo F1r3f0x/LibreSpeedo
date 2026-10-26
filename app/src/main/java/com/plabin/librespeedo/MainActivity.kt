@@ -58,7 +58,9 @@ import kotlinx.coroutines.launch
 class MainActivity : ComponentActivity() {
 
     private val viewModel: SpeedometerViewModel by viewModels()
-    private lateinit var settingsRepository: SettingsRepository
+    // Reuse the recorder's settings, including after activity recreation.
+    internal val settingsRepository: SettingsRepository
+        get() = viewModel.settingsRepository
     private var pendingAutomaticLoggingEnable = false
 
     private val exportTripDatabaseLauncher = registerForActivityResult(
@@ -90,8 +92,6 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        
-        settingsRepository = SettingsRepository(this)
         
         checkPermissionsAndStart()
 

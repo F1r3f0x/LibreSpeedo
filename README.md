@@ -18,7 +18,7 @@ The dashboard also includes a Hello World demonstration widget. A driving rating
 
 ## Get started
 
-Install a debug build, grant location access, and enable Android location services. Use **Start trip** on the dashboard for manual logging. For automatic logging, pair your car in Android settings, then enable **Automatic trip logging** and **Choose paired car** in LibreSpeedo settings. Trip settings currently may require a full app restart to reach the recorder; the [user guide](docs/user-guide.md) explains this limitation.
+Install a debug build, grant location access, and enable Android location services. Use **Start trip** on the dashboard for manual logging. For automatic logging, pair your car in Android settings, then enable **Automatic trip logging** and **Choose paired car** in LibreSpeedo settings. Trip settings update without restarting; route storage and mounting confirmation apply to the next trip. See the [user guide](docs/user-guide.md) for details.
 
 **Keep LibreSpeedo visible during recording.** Leaving the app or locking the screen ends a trip as interrupted; rotation and navigation inside the app preserve it. See the [user guide](docs/user-guide.md) for setup, measurement limits, and data controls.
 

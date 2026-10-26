@@ -38,7 +38,7 @@ The ViewModel requests a 500 ms interval, tracks location freshness using elapse
 
 ## State, dashboard, and lifecycle
 
-`SpeedometerViewModel` exposes `SpeedometerUiState`, `TripLoggerUiState`, ordered widgets, and saved spans. `SettingsRepository` exposes SharedPreferences-backed StateFlows. Each instance initializes from disk and updates its own flows through setters. The activity and ViewModel currently create separate instances without a SharedPreferences change listener; settings changed through the activity can therefore remain stale in ViewModel consumers until those consumers are recreated. This is a known integration gap, especially for trip automation, route storage, mounting, and retention.
+`SpeedometerViewModel` exposes `SpeedometerUiState`, `TripLoggerUiState`, ordered widgets, and saved spans. It owns the `SettingsRepository` shared with `MainActivity`, including across activity recreation. The repository exposes SharedPreferences-backed StateFlows updated through its setters, so UI changes reach recorder consumers without restarting. Automation, car selection, and retention are observed live; route storage and mounting confirmation are captured at trip start.
 
 The dashboard has a two-column `LazyVerticalGrid` with half-width, wide, and large cards. Editing supports reordering, widget management, sizing, and style pickers. The Trip logger card is separate from the customizable widget enum. `ChronometerState` belongs to the ViewModel and survives composition changes and rotation, but is neither trip timing nor persistent storage.
 
