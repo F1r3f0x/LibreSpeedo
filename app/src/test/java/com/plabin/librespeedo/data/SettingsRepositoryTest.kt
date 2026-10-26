@@ -29,6 +29,25 @@ import org.junit.Test
 class SettingsRepositoryTest {
 
     @Test
+    fun digitalStyle_persistsWithoutChangingAnalogStyle() {
+        val prefs = FakeSharedPreferences()
+        val settings = SettingsRepository(prefs)
+        assertEquals(DigitalSpeedometerStyle.STANDARD, settings.digitalSpeedometerStyle.value)
+        settings.setAnalogSpeedometerStyle(AnalogSpeedometerStyle.CAT)
+        settings.setDigitalSpeedometerStyle(DigitalSpeedometerStyle.SEVEN_SEGMENT)
+        val restored = SettingsRepository(prefs)
+        assertEquals(DigitalSpeedometerStyle.SEVEN_SEGMENT, restored.digitalSpeedometerStyle.value)
+        assertEquals(AnalogSpeedometerStyle.CAT, restored.analogSpeedometerStyle.value)
+    }
+
+    @Test
+    fun digitalStyle_unknownSavedValueFallsBackToStandard() {
+        val prefs = FakeSharedPreferences()
+        prefs.putString("digital_speedometer_style", "UNKNOWN_STYLE")
+        assertEquals(DigitalSpeedometerStyle.STANDARD, SettingsRepository(prefs).digitalSpeedometerStyle.value)
+    }
+
+    @Test
     fun analogStyle_defaultsToClassicAndPersistsEachSelection() {
         val prefs = FakeSharedPreferences()
         val settings = SettingsRepository(prefs)

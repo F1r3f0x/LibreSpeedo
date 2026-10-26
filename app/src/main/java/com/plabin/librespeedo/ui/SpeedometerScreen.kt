@@ -43,6 +43,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.plabin.librespeedo.R
 import com.plabin.librespeedo.data.AnalogSpeedometerStyle
+import com.plabin.librespeedo.data.DigitalSpeedometerStyle
 import com.plabin.librespeedo.data.SpeedUnit
 import com.plabin.librespeedo.data.WidgetSpan
 import com.plabin.librespeedo.ui.components.WidgetContainer
@@ -100,7 +101,9 @@ fun SpeedometerScreen(
     modifier: Modifier = Modifier,
     chronometerState: ChronometerState = remember { ChronometerState() },
     analogStyle: AnalogSpeedometerStyle = AnalogSpeedometerStyle.CLASSIC,
-    onAnalogStyleChange: (AnalogSpeedometerStyle) -> Unit = {}
+    onAnalogStyleChange: (AnalogSpeedometerStyle) -> Unit = {},
+    digitalStyle: DigitalSpeedometerStyle = DigitalSpeedometerStyle.STANDARD,
+    onDigitalStyleChange: (DigitalSpeedometerStyle) -> Unit = {}
 ) {
     var showAddMenu by remember { mutableStateOf(false) }
     val configuration = LocalConfiguration.current
@@ -183,7 +186,9 @@ fun SpeedometerScreen(
                 onWidgetSpanChange = onWidgetSpanChange,
                 chronometerState = chronometerState,
                 analogStyle = analogStyle,
-                onAnalogStyleChange = onAnalogStyleChange
+                onAnalogStyleChange = onAnalogStyleChange,
+                digitalStyle = digitalStyle,
+                onDigitalStyleChange = onDigitalStyleChange
             )
         }
     }
@@ -217,7 +222,9 @@ fun ReorderableWidgetGrid(
     onWidgetSpanChange: (WidgetType, WidgetSpan) -> Unit,
     chronometerState: ChronometerState = remember { ChronometerState() },
     analogStyle: AnalogSpeedometerStyle = AnalogSpeedometerStyle.CLASSIC,
-    onAnalogStyleChange: (AnalogSpeedometerStyle) -> Unit = {}
+    onAnalogStyleChange: (AnalogSpeedometerStyle) -> Unit = {},
+    digitalStyle: DigitalSpeedometerStyle = DigitalSpeedometerStyle.STANDARD,
+    onDigitalStyleChange: (DigitalSpeedometerStyle) -> Unit = {}
 ) {
     var draggedIndex by remember { mutableStateOf<Int?>(null) }
     var draggedOffsetX by remember { mutableStateOf(0f) }
@@ -320,7 +327,9 @@ fun ReorderableWidgetGrid(
                     elevation = elevation,
                     chronometerState = chronometerState,
                     analogStyle = analogStyle,
-                    onAnalogStyleChange = onAnalogStyleChange
+                    onAnalogStyleChange = onAnalogStyleChange,
+                    digitalStyle = digitalStyle,
+                    onDigitalStyleChange = onDigitalStyleChange
                 )
             }
         }

@@ -167,12 +167,8 @@ class SpeedometerScreenTest {
         settingsButtons[0].performClick()
         composeTestRule.onNodeWithText("Speedometer Settings").assertExists()
 
-        // Find the RadioButton for MPH by finding all selectable nodes
-        val radioButtons = composeTestRule.onAllNodes(isSelectable())
-        if (radioButtons.fetchSemanticsNodes().size >= 2) {
-            radioButtons[1].performClick()
-            assertEquals(SpeedUnit.MPH, selectedUnit)
-        }
+        composeTestRule.onNodeWithText("MPH").performScrollTo().performClick()
+        assertEquals(SpeedUnit.MPH, selectedUnit)
 
         composeTestRule.onNodeWithText("Done").performClick()
     }

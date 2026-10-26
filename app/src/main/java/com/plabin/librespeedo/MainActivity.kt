@@ -79,6 +79,7 @@ class MainActivity : ComponentActivity() {
             val isEditMode by settingsRepository.isEditMode.collectAsState()
             val speedUnit by settingsRepository.speedUnit.collectAsState()
             val analogStyle by settingsRepository.analogSpeedometerStyle.collectAsState()
+            val digitalStyle by settingsRepository.digitalSpeedometerStyle.collectAsState()
             val widgetSpans by viewModel.widgetSpans.collectAsState()
             
             val navController = rememberNavController()
@@ -109,7 +110,9 @@ class MainActivity : ComponentActivity() {
                             modifier = Modifier.fillMaxSize(),
                             chronometerState = viewModel.chronometer,
                             analogStyle = analogStyle,
-                            onAnalogStyleChange = settingsRepository::setAnalogSpeedometerStyle
+                            onAnalogStyleChange = settingsRepository::setAnalogSpeedometerStyle,
+                            digitalStyle = digitalStyle,
+                            onDigitalStyleChange = settingsRepository::setDigitalSpeedometerStyle
                         )
                     }
                     composable("settings") {

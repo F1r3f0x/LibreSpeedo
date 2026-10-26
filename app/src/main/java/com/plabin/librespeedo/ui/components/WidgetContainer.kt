@@ -17,6 +17,8 @@
 package com.plabin.librespeedo.ui.components
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.ui.semantics.Role
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -33,6 +35,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.plabin.librespeedo.data.AnalogSpeedometerStyle
+import com.plabin.librespeedo.data.DigitalSpeedometerStyle
 import com.plabin.librespeedo.data.SpeedUnit
 import com.plabin.librespeedo.data.WidgetSpan
 import com.plabin.librespeedo.ui.SpeedometerUiState
@@ -70,7 +73,9 @@ fun WidgetContainer(
     modifier: Modifier = Modifier,
     chronometerState: ChronometerState = remember { ChronometerState() },
     analogStyle: AnalogSpeedometerStyle = AnalogSpeedometerStyle.CLASSIC,
-    onAnalogStyleChange: (AnalogSpeedometerStyle) -> Unit = {}
+    onAnalogStyleChange: (AnalogSpeedometerStyle) -> Unit = {},
+    digitalStyle: DigitalSpeedometerStyle = DigitalSpeedometerStyle.STANDARD,
+    onDigitalStyleChange: (DigitalSpeedometerStyle) -> Unit = {}
 ) {
     var showSpeedSettings by remember { mutableStateOf(false) }
 
@@ -84,6 +89,10 @@ fun WidgetContainer(
                         AnalogSpeedometerStylePicker(analogStyle, speedUnit, onAnalogStyleChange)
                         HorizontalDivider(Modifier.padding(vertical = 12.dp))
                     }
+                    if (widget == WidgetType.SPEEDOMETER) {
+                        DigitalSpeedometerStylePicker(digitalStyle, speedUnit, onDigitalStyleChange)
+                        HorizontalDivider(Modifier.padding(vertical = 12.dp))
+                    }
                     Text("Select Unit:")
                     Spacer(modifier = Modifier.height(8.dp))
                     SpeedUnit.entries.forEach { unit ->
@@ -91,11 +100,13 @@ fun WidgetContainer(
                             verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier
                                 .fillMaxWidth()
+                                .selectable(selected = speedUnit == unit, role = Role.RadioButton,
+                                    onClick = { onSpeedUnitChange(unit) })
                                 .padding(vertical = 4.dp)
                         ) {
                             RadioButton(
                                 selected = speedUnit == unit,
-                                onClick = { onSpeedUnitChange(unit) }
+                                onClick = null
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(text = unit.name)
@@ -167,7 +178,7 @@ fun WidgetContainer(
                 verticalArrangement = Arrangement.Center
             ) {
                 when (widget) {
-                    WidgetType.SPEEDOMETER -> SpeedComponent(uiState, speedUnit, span)
+                    WidgetType.SPEEDOMETER -> SpeedComponent(uiState, speedUnit, span, style = digitalStyle)
                     WidgetType.ANALOG_SPEEDOMETER -> AnalogSpeedometerComponent(uiState, speedUnit, span = span, style = analogStyle)
                     WidgetType.COMPASS -> CompassComponent(uiState.heading, span)
                     WidgetType.ANALOG_COMPASS -> AnalogCompassComponent(heading = uiState.heading, span = span)

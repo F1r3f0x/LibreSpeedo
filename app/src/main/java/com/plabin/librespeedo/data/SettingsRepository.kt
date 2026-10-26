@@ -115,6 +115,20 @@ class SettingsRepository(private val prefs: SharedPreferences) {
     /** Emits the user's active [SpeedUnit] preference for speedometer readouts. */
     val speedUnit: StateFlow<SpeedUnit> = _speedUnit.asStateFlow()
 
+    private val _digitalSpeedometerStyle = MutableStateFlow(
+        runCatching {
+            DigitalSpeedometerStyle.valueOf(prefs.getString("digital_speedometer_style", null).orEmpty())
+        }.getOrDefault(DigitalSpeedometerStyle.STANDARD)
+    )
+    /** Emits the saved digital display appearance, defaulting to standard text. */
+    val digitalSpeedometerStyle: StateFlow<DigitalSpeedometerStyle> = _digitalSpeedometerStyle.asStateFlow()
+
+    /** Saves the digital appearance independently of analog gauge settings. */
+    fun setDigitalSpeedometerStyle(style: DigitalSpeedometerStyle) {
+        prefs.edit { putString("digital_speedometer_style", style.name) }
+        _digitalSpeedometerStyle.value = style
+    }
+
     private val _analogSpeedometerStyle = MutableStateFlow(
         runCatching {
             AnalogSpeedometerStyle.valueOf(prefs.getString("analog_speedometer_style", null).orEmpty())
