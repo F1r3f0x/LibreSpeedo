@@ -115,6 +115,20 @@ class SettingsRepository(private val prefs: SharedPreferences) {
     /** Emits the user's active [SpeedUnit] preference for speedometer readouts. */
     val speedUnit: StateFlow<SpeedUnit> = _speedUnit.asStateFlow()
 
+    private val _analogSpeedometerStyle = MutableStateFlow(
+        runCatching {
+            AnalogSpeedometerStyle.valueOf(prefs.getString("analog_speedometer_style", null).orEmpty())
+        }.getOrDefault(AnalogSpeedometerStyle.CLASSIC)
+    )
+    /** Emits the saved analog gauge appearance, defaulting to Classic. */
+    val analogSpeedometerStyle: StateFlow<AnalogSpeedometerStyle> = _analogSpeedometerStyle.asStateFlow()
+
+    /** Saves the selected appearance without changing dashboard layout or speed units. */
+    fun setAnalogSpeedometerStyle(style: AnalogSpeedometerStyle) {
+        prefs.edit { putString("analog_speedometer_style", style.name) }
+        _analogSpeedometerStyle.value = style
+    }
+
     /**
      * Sets the OLED theme preference and persists it to storage.
      *

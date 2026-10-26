@@ -39,13 +39,18 @@ import androidx.compose.ui.platform.LocalLocale
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.drawText
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.plabin.librespeedo.data.SpeedUnit
+import com.plabin.librespeedo.data.AnalogSpeedometerStyle
 import com.plabin.librespeedo.data.WidgetSpan
 import com.plabin.librespeedo.ui.SpeedometerUiState
 import com.plabin.librespeedo.utils.SpeedConverter
 import kotlin.math.cos
+import kotlin.math.roundToInt
 import kotlin.math.max
 import kotlin.math.sin
 
@@ -54,7 +59,7 @@ import kotlin.math.sin
  */
 fun getSpeedometerMaxScale(speedUnit: SpeedUnit, currentSpeed: Float): Float {
     val defaultMax = when (speedUnit) {
-        SpeedUnit.KMH -> 220f
+        SpeedUnit.KMH -> 240f
         SpeedUnit.MPH -> 140f
         SpeedUnit.MS -> 60f
     }
@@ -78,13 +83,15 @@ fun getSpeedometerMaxScale(speedUnit: SpeedUnit, currentSpeed: Float): Float {
  * @param speedUnit Active unit (KMH, MPH, MS).
  * @param modifier Optional layout modifier.
  * @param span Active widget layout span for adaptive sizing.
+ * @param style Saved visual preset for the gauge.
  */
 @Composable
 fun AnalogSpeedometerComponent(
     uiState: SpeedometerUiState,
     speedUnit: SpeedUnit,
     modifier: Modifier = Modifier,
-    span: WidgetSpan = WidgetSpan.FULL_WIDTH
+    span: WidgetSpan = WidgetSpan.FULL_WIDTH,
+    style: AnalogSpeedometerStyle = AnalogSpeedometerStyle.CLASSIC
 ) {
     val speedAvailable = uiState.isLocationFresh && uiState.isSpeedAvailable
     val speedRawMs = uiState.speedKmh / 3.6f
@@ -122,13 +129,24 @@ fun AnalogSpeedometerComponent(
         WidgetSpan.LARGE -> 175.dp
     }
 
-    val primaryColor = MaterialTheme.colorScheme.primary
-    val secondaryColor = MaterialTheme.colorScheme.secondary
-    val tertiaryColor = MaterialTheme.colorScheme.tertiary
+    val isSport = style == AnalogSpeedometerStyle.SPORT
+    val isMinimal = style == AnalogSpeedometerStyle.MINIMAL
+    val primaryColor = when (style) {
+        AnalogSpeedometerStyle.CLASSIC -> MaterialTheme.colorScheme.primary
+        AnalogSpeedometerStyle.SPORT -> Color(0xFFFFBE55)
+        AnalogSpeedometerStyle.MINIMAL -> Color(0xFFE4F3F5)
+    }
+    val secondaryColor = when (style) {
+        AnalogSpeedometerStyle.CLASSIC -> MaterialTheme.colorScheme.secondary
+        AnalogSpeedometerStyle.SPORT -> Color(0xFFFF8A50)
+        AnalogSpeedometerStyle.MINIMAL -> Color(0xFF94AEB4)
+    }
+    val tertiaryColor = if (isSport) Color(0xFFFF4D4D) else MaterialTheme.colorScheme.tertiary
     val trackBackgroundColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.2f)
     val inactiveTickColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-    val needleColor = Color(0xFFE53935)
-    val hubColor = MaterialTheme.colorScheme.surface
+    val needleColor = if (isMinimal) primaryColor else Color(0xFFE53935)
+    val hubColor = if (isSport) Color(0xFF151C26) else MaterialTheme.colorScheme.surface
+    val textMeasurer = rememberTextMeasurer()
 
     Column(
         modifier = modifier.fillMaxSize(),
@@ -143,7 +161,7 @@ fun AnalogSpeedometerComponent(
                 contentDescription = if (speedAvailable) "Speed gauge" else "Speed unavailable"
             }) {
                 val center = Offset(size.width / 2f, size.height / 2f)
-                val strokeWidth = when (span) {
+                val strokeWidth = if (isMinimal) 1.dp.toPx() else when (span) {
                     WidgetSpan.HALF -> 4.dp.toPx()
                     WidgetSpan.FULL_WIDTH -> 6.dp.toPx()
                     WidgetSpan.LARGE -> 8.dp.toPx()
@@ -151,6 +169,18 @@ fun AnalogSpeedometerComponent(
                 val arcRadius = (size.minDimension / 2f) - (strokeWidth / 2f) - 4.dp.toPx()
                 val arcTopLeft = Offset(center.x - arcRadius, center.y - arcRadius)
                 val arcSize = Size(arcRadius * 2, arcRadius * 2)
+
+                if (isSport) {
+                    drawCircle(
+                        brush = Brush.radialGradient(listOf(Color(0xFF26303D), Color(0xFF10151D)), center, arcRadius),
+                        radius = arcRadius,
+                        center = center
+                    )
+                    drawCircle(
+                        color = Color(0xFF495361), radius = arcRadius, center = center,
+                        style = Stroke(1.dp.toPx())
+                    )
+                }
 
                 // Background track arc
                 drawArc(
@@ -163,6 +193,14 @@ fun AnalogSpeedometerComponent(
                     style = Stroke(width = strokeWidth, cap = StrokeCap.Round)
                 )
 
+                if (isSport) drawArc(
+                    color = tertiaryColor,
+                    startAngle = startAngle + sweepAngle * 0.8f,
+                    sweepAngle = sweepAngle * 0.2f,
+                    useCenter = false, topLeft = arcTopLeft, size = arcSize,
+                    style = Stroke(strokeWidth, cap = StrokeCap.Butt)
+                )
+
                 // Active speed progress arc
                 val activeSweep = (speedFraction * sweepAngle).coerceAtLeast(0.1f)
                 val arcGradient = Brush.sweepGradient(
@@ -171,7 +209,7 @@ fun AnalogSpeedometerComponent(
                     1.0f to tertiaryColor,
                     center = center
                 )
-                if (speedAvailable) drawArc(
+                if (speedAvailable && !isMinimal) drawArc(
                     brush = arcGradient,
                     startAngle = startAngle,
                     sweepAngle = activeSweep,
@@ -195,14 +233,18 @@ fun AnalogSpeedometerComponent(
                     val angleRad = Math.toRadians(angleDeg.toDouble())
                     val isMajor = i % 2 == 0
 
+                    if (isMinimal && !isMajor) continue
                     val tickLength = when {
+                        isMinimal -> 4.dp.toPx()
                         isMajor && span == WidgetSpan.LARGE -> 10.dp.toPx()
                         isMajor -> 7.dp.toPx()
                         span == WidgetSpan.LARGE -> 5.dp.toPx()
                         else -> 3.dp.toPx()
                     }
-                    val tickWidth = if (isMajor) 2.dp.toPx() else 1.dp.toPx()
-                    val tickColor = if (isMajor) {
+                    val tickWidth = if (isMinimal) 1.dp.toPx() else if (isMajor) 2.dp.toPx() else 1.dp.toPx()
+                    val tickColor = if (isSport) {
+                        if (tickFraction >= 0.8f) tertiaryColor else Color(0xFFE6EAF0)
+                    } else if (isMajor) {
                         if (speedAvailable && tickFraction <= speedFraction) primaryColor else inactiveTickColor
                     } else {
                         trackBackgroundColor
@@ -223,6 +265,22 @@ fun AnalogSpeedometerComponent(
                         strokeWidth = tickWidth,
                         cap = StrokeCap.Round
                     )
+
+                    if (isSport && (i % 4 == 0 || i == numTicks)) {
+                        val labelRadius = innerR - 5.dp.toPx()
+                        val label = textMeasurer.measure(
+                            text = (maxScale * tickFraction).roundToInt().toString(),
+                            style = TextStyle(
+                                color = Color(0xFFE6EAF0),
+                                fontSize = if (span == WidgetSpan.LARGE) 10.sp else if (span == WidgetSpan.HALF) 6.sp else 7.sp,
+                                fontWeight = FontWeight.Medium
+                            )
+                        )
+                        drawText(label, topLeft = Offset(
+                            center.x + labelRadius * cos(angleRad).toFloat() - label.size.width / 2f,
+                            center.y + labelRadius * sin(angleRad).toFloat() - label.size.height / 2f
+                        ))
+                    }
                 }
 
                 // The path points up (-90°); add 90° to align it with the dial's angle.
@@ -241,10 +299,19 @@ fun AnalogSpeedometerComponent(
                         lineTo(center.x + needleBaseWidth, center.y)
                         close()
                     }
-                    drawPath(path = needlePath, color = needleColor)
+                    if (isMinimal) {
+                        drawLine(
+                            color = needleColor,
+                            start = center,
+                            end = Offset(center.x, center.y - needleLength),
+                            strokeWidth = 1.5.dp.toPx(), cap = StrokeCap.Round
+                        )
+                    } else {
+                        drawPath(path = needlePath, color = needleColor)
+                    }
 
                     // Center pivot hub
-                    val hubRadius = when (span) {
+                    val hubRadius = if (isMinimal) 2.5.dp.toPx() else when (span) {
                         WidgetSpan.HALF -> 4.dp.toPx()
                         WidgetSpan.FULL_WIDTH -> 5.5.dp.toPx()
                         WidgetSpan.LARGE -> 8.dp.toPx()

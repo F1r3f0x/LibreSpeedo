@@ -42,6 +42,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.plabin.librespeedo.R
+import com.plabin.librespeedo.data.AnalogSpeedometerStyle
 import com.plabin.librespeedo.data.SpeedUnit
 import com.plabin.librespeedo.data.WidgetSpan
 import com.plabin.librespeedo.ui.components.WidgetContainer
@@ -97,7 +98,9 @@ fun SpeedometerScreen(
     onSpeedUnitChange: (SpeedUnit) -> Unit,
     onSettingsClick: () -> Unit,
     modifier: Modifier = Modifier,
-    chronometerState: ChronometerState = remember { ChronometerState() }
+    chronometerState: ChronometerState = remember { ChronometerState() },
+    analogStyle: AnalogSpeedometerStyle = AnalogSpeedometerStyle.CLASSIC,
+    onAnalogStyleChange: (AnalogSpeedometerStyle) -> Unit = {}
 ) {
     var showAddMenu by remember { mutableStateOf(false) }
     val configuration = LocalConfiguration.current
@@ -178,7 +181,9 @@ fun SpeedometerScreen(
                 onRemove = onRemoveWidget,
                 onSpeedUnitChange = onSpeedUnitChange,
                 onWidgetSpanChange = onWidgetSpanChange,
-                chronometerState = chronometerState
+                chronometerState = chronometerState,
+                analogStyle = analogStyle,
+                onAnalogStyleChange = onAnalogStyleChange
             )
         }
     }
@@ -210,7 +215,9 @@ fun ReorderableWidgetGrid(
     onRemove: (WidgetType) -> Unit,
     onSpeedUnitChange: (SpeedUnit) -> Unit,
     onWidgetSpanChange: (WidgetType, WidgetSpan) -> Unit,
-    chronometerState: ChronometerState = remember { ChronometerState() }
+    chronometerState: ChronometerState = remember { ChronometerState() },
+    analogStyle: AnalogSpeedometerStyle = AnalogSpeedometerStyle.CLASSIC,
+    onAnalogStyleChange: (AnalogSpeedometerStyle) -> Unit = {}
 ) {
     var draggedIndex by remember { mutableStateOf<Int?>(null) }
     var draggedOffsetX by remember { mutableStateOf(0f) }
@@ -311,7 +318,9 @@ fun ReorderableWidgetGrid(
                     onToggleSpan = { onWidgetSpanChange(widget, span.next()) },
                     onSpeedUnitChange = onSpeedUnitChange,
                     elevation = elevation,
-                    chronometerState = chronometerState
+                    chronometerState = chronometerState,
+                    analogStyle = analogStyle,
+                    onAnalogStyleChange = onAnalogStyleChange
                 )
             }
         }

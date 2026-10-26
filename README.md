@@ -9,6 +9,7 @@ LibreSpeedo is an open-source, privacy-respecting speedometer and trip logger fo
 - **Smart Fused Compass**: Fuses hardware sensors (accelerometer & magnetic field) with GPS bearing. Includes tilt-compensation for upright dashboards and a low-pass filter to eliminate jitter.
 - **Modular Dashboard**: A fully customizable 2-column grid interface where you can add, remove, resize (1x1 Half, 2x1 Wide, 2x2 Large), and drag-and-drop widgets dynamically. Current widgets include:
   - **Speedometer**: High-contrast speed display with customizable units (km/h, mph, m/s).
+  - **Analog Speedometer**: Animated gauge with Classic, Sport, and Minimal styles. Enable Edit Mode and open the widget settings to preview and save a style.
   - **Compass**: Real-time heading needle that correctly points North.
   - **Position**: Raw GPS coordinates.
   - **Debug Panel**: Monitor exactly which hardware provider is active, alongside altitude, accuracy metrics, and raw sensor data (accel, gyro, mag).

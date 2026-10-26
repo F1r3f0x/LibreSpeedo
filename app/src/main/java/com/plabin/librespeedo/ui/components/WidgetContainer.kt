@@ -17,6 +17,8 @@
 package com.plabin.librespeedo.ui.components
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AspectRatio
@@ -30,6 +32,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.plabin.librespeedo.data.AnalogSpeedometerStyle
 import com.plabin.librespeedo.data.SpeedUnit
 import com.plabin.librespeedo.data.WidgetSpan
 import com.plabin.librespeedo.ui.SpeedometerUiState
@@ -65,7 +68,9 @@ fun WidgetContainer(
     onSpeedUnitChange: (SpeedUnit) -> Unit,
     elevation: Dp,
     modifier: Modifier = Modifier,
-    chronometerState: ChronometerState = remember { ChronometerState() }
+    chronometerState: ChronometerState = remember { ChronometerState() },
+    analogStyle: AnalogSpeedometerStyle = AnalogSpeedometerStyle.CLASSIC,
+    onAnalogStyleChange: (AnalogSpeedometerStyle) -> Unit = {}
 ) {
     var showSpeedSettings by remember { mutableStateOf(false) }
 
@@ -74,7 +79,11 @@ fun WidgetContainer(
             onDismissRequest = { showSpeedSettings = false },
             title = { Text("Speedometer Settings") },
             text = {
-                Column {
+                Column(Modifier.heightIn(max = 480.dp).verticalScroll(rememberScrollState())) {
+                    if (widget == WidgetType.ANALOG_SPEEDOMETER) {
+                        AnalogSpeedometerStylePicker(analogStyle, speedUnit, onAnalogStyleChange)
+                        HorizontalDivider(Modifier.padding(vertical = 12.dp))
+                    }
                     Text("Select Unit:")
                     Spacer(modifier = Modifier.height(8.dp))
                     SpeedUnit.entries.forEach { unit ->
@@ -159,7 +168,7 @@ fun WidgetContainer(
             ) {
                 when (widget) {
                     WidgetType.SPEEDOMETER -> SpeedComponent(uiState, speedUnit, span)
-                    WidgetType.ANALOG_SPEEDOMETER -> AnalogSpeedometerComponent(uiState, speedUnit, span = span)
+                    WidgetType.ANALOG_SPEEDOMETER -> AnalogSpeedometerComponent(uiState, speedUnit, span = span, style = analogStyle)
                     WidgetType.COMPASS -> CompassComponent(uiState.heading, span)
                     WidgetType.ANALOG_COMPASS -> AnalogCompassComponent(heading = uiState.heading, span = span)
                     WidgetType.CHRONOMETER -> ChronometerComponent(span, state = chronometerState)

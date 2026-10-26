@@ -78,6 +78,7 @@ class MainActivity : ComponentActivity() {
             val isKeepScreenOn by settingsRepository.isKeepScreenOn.collectAsState()
             val isEditMode by settingsRepository.isEditMode.collectAsState()
             val speedUnit by settingsRepository.speedUnit.collectAsState()
+            val analogStyle by settingsRepository.analogSpeedometerStyle.collectAsState()
             val widgetSpans by viewModel.widgetSpans.collectAsState()
             
             val navController = rememberNavController()
@@ -106,7 +107,9 @@ class MainActivity : ComponentActivity() {
                             onSpeedUnitChange = { settingsRepository.setSpeedUnit(it) },
                             onSettingsClick = { navController.navigate("settings") },
                             modifier = Modifier.fillMaxSize(),
-                            chronometerState = viewModel.chronometer
+                            chronometerState = viewModel.chronometer,
+                            analogStyle = analogStyle,
+                            onAnalogStyleChange = settingsRepository::setAnalogSpeedometerStyle
                         )
                     }
                     composable("settings") {

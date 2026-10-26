@@ -94,12 +94,12 @@ class SpeedometerScreenHelperTest {
     @Test
     fun getSpeedometerMaxScale_calculatesAppropriateScales() {
         // Normal speeds within default limits
-        assertEquals(220f, getSpeedometerMaxScale(SpeedUnit.KMH, 50f))
+        assertEquals(240f, getSpeedometerMaxScale(SpeedUnit.KMH, 50f))
         assertEquals(140f, getSpeedometerMaxScale(SpeedUnit.MPH, 65f))
         assertEquals(60f, getSpeedometerMaxScale(SpeedUnit.MS, 20f))
 
         // High speeds exceeding default limits
-        assertEquals(260f, getSpeedometerMaxScale(SpeedUnit.KMH, 235f))
+        assertEquals(280f, getSpeedometerMaxScale(SpeedUnit.KMH, 255f))
         assertEquals(160f, getSpeedometerMaxScale(SpeedUnit.MPH, 145f))
         assertEquals(70f, getSpeedometerMaxScale(SpeedUnit.MS, 62f))
     }
