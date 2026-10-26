@@ -25,6 +25,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
@@ -38,6 +40,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -46,9 +49,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.material3.AlertDialog
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.plabin.librespeedo.trips.CarConnection
+import com.plabin.librespeedo.trips.PairedCar
 
 /**
  * A screen for user preferences, such as the OLED theme, Screen Lock, and Dashboard Edit toggles.
@@ -76,9 +83,25 @@ fun SettingsScreen(
     modifier: Modifier = Modifier,
     isEditMode: Boolean = false,
     onEditModeChanged: (Boolean) -> Unit = {},
-    onResetLayout: () -> Unit = {}
+    onResetLayout: () -> Unit = {},
+    automaticTripLogging: Boolean = false,
+    selectedCarName: String? = null,
+    carConnection: CarConnection = CarConnection.UNKNOWN,
+    bluetoothPermissionGranted: Boolean = false,
+    pairedCars: List<PairedCar> = emptyList(),
+    onAutomaticTripLoggingChanged: (Boolean) -> Unit = {},
+    onRequestBluetoothPermission: (Boolean) -> Unit = {},
+    onRefreshPairedCars: () -> Unit = {},
+    onSelectCar: (PairedCar) -> Unit = {},
+    tripRetentionDays: Int = 30,
+    onTripRetentionDaysChange: (Int) -> Unit = {},
+    storeTripRoute: Boolean = false,
+    onStoreTripRouteChanged: (Boolean) -> Unit = {},
+    stableMountConfirmed: Boolean = false,
+    onStableMountConfirmedChanged: (Boolean) -> Unit = {}
 ) {
     var showResetDialog by remember { mutableStateOf(false) }
+    var showCarPicker by remember { mutableStateOf(false) }
 
     if (showResetDialog) {
         AlertDialog(
@@ -103,6 +126,25 @@ fun SettingsScreen(
         )
     }
 
+    if (showCarPicker) {
+        AlertDialog(
+            onDismissRequest = { showCarPicker = false },
+            title = { Text("Choose paired car") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    if (pairedCars.isEmpty()) Text("No paired devices found. Pair your car in Android Bluetooth settings, then refresh.")
+                    pairedCars.forEach { car ->
+                        TextButton(onClick = { onSelectCar(car); showCarPicker = false }) {
+                            Text("${car.name} · ${car.address}")
+                        }
+                    }
+                }
+            },
+            confirmButton = { TextButton(onClick = onRefreshPairedCars) { Text("Refresh devices") } },
+            dismissButton = { TextButton(onClick = { showCarPicker = false }) { Text("Close") } }
+        )
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -124,6 +166,7 @@ fun SettingsScreen(
                 .padding(innerPadding)
                 .padding(16.dp)
                 .fillMaxSize()
+                .verticalScroll(rememberScrollState())
         ) {
             SettingRow(
                 title = "OLED Theme",
@@ -148,6 +191,51 @@ fun SettingsScreen(
                 description = "Enable Edit Mode to rearrange, add, or remove widgets on the main screen.",
                 isChecked = isEditMode,
                 onCheckedChange = onEditModeChanged
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            SettingRow(
+                title = "Automatic trip logging",
+                description = "Arm trip detection when the selected paired car connects. Recording only runs while LibreSpeedo is visible.",
+                isChecked = automaticTripLogging,
+                onCheckedChange = { enabled ->
+                    if (enabled && !bluetoothPermissionGranted) onRequestBluetoothPermission(true)
+                    else onAutomaticTripLoggingChanged(enabled)
+                }
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text("Selected car: ${selectedCarName ?: "None"} · ${when (carConnection) {
+                CarConnection.CONNECTED -> "Connected"
+                CarConnection.DISCONNECTED -> "Disconnected"
+                CarConnection.UNKNOWN -> "Connection unknown"
+            }}", style = MaterialTheme.typography.bodySmall)
+            OutlinedButton(
+                onClick = {
+                    if (bluetoothPermissionGranted) {
+                        showCarPicker = true
+                        onRefreshPairedCars()
+                    } else onRequestBluetoothPermission(false)
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) { Text(if (bluetoothPermissionGranted) "Choose paired car" else "Allow Bluetooth and choose car") }
+            TextButton(onClick = {
+                val options = listOf(7, 30, 90, 0)
+                onTripRetentionDaysChange(options[(options.indexOf(tripRetentionDays).coerceAtLeast(0) + 1) % options.size])
+            }) {
+                Text("Trip data retention: ${if (tripRetentionDays == 0) "Keep indefinitely" else "$tripRetentionDays days"} · change")
+            }
+            SettingRow(
+                title = "Store trip route",
+                description = "Save coordinates with trip samples. Turn this off to keep trip metrics without retaining a route.",
+                isChecked = storeTripRoute,
+                onCheckedChange = onStoreTripRouteChanged
+            )
+            SettingRow(
+                title = "Phone is rigidly mounted",
+                description = "Confirm the phone is fixed in a stable mount. Handheld or loose phones reduce motion metric confidence.",
+                isChecked = stableMountConfirmed,
+                onCheckedChange = onStableMountConfirmedChanged
             )
             
             Spacer(modifier = Modifier.height(24.dp))
@@ -222,7 +310,8 @@ fun SettingRow(
         }
         Switch(
             checked = isChecked,
-            onCheckedChange = onCheckedChange
+            onCheckedChange = onCheckedChange,
+            modifier = Modifier.semantics { contentDescription = title }
         )
     }
 }

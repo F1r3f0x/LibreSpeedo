@@ -1,0 +1,259 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 2,
+    "identityHash": "f50224ae153c3b73d299a64218f6ec9d",
+    "entities": [
+      {
+        "tableName": "trips",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `startUtcMillis` INTEGER NOT NULL, `endUtcMillis` INTEGER, `startElapsedNanos` INTEGER NOT NULL, `endElapsedNanos` INTEGER, `bootSession` TEXT NOT NULL, `origin` TEXT NOT NULL, `carAddress` TEXT, `status` TEXT NOT NULL, `endReason` TEXT, `lastCheckpointElapsedNanos` INTEGER NOT NULL, `topSpeedMetersPerSecond` REAL, `distanceMeters` REAL NOT NULL, `speedIntegralMeters` REAL NOT NULL, `speedCoveredNanos` INTEGER NOT NULL, `movingNanos` INTEGER NOT NULL, `stoppedNanos` INTEGER NOT NULL, `unknownNanos` INTEGER NOT NULL, `speedCoverage` REAL NOT NULL, `movementCoverage` REAL NOT NULL, `algorithmVersion` INTEGER NOT NULL, `routeStorageEnabled` INTEGER NOT NULL, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "startUtcMillis",
+            "columnName": "startUtcMillis",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "endUtcMillis",
+            "columnName": "endUtcMillis",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "startElapsedNanos",
+            "columnName": "startElapsedNanos",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "endElapsedNanos",
+            "columnName": "endElapsedNanos",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "bootSession",
+            "columnName": "bootSession",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "origin",
+            "columnName": "origin",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "carAddress",
+            "columnName": "carAddress",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "status",
+            "columnName": "status",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "endReason",
+            "columnName": "endReason",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "lastCheckpointElapsedNanos",
+            "columnName": "lastCheckpointElapsedNanos",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "topSpeedMetersPerSecond",
+            "columnName": "topSpeedMetersPerSecond",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "distanceMeters",
+            "columnName": "distanceMeters",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "speedIntegralMeters",
+            "columnName": "speedIntegralMeters",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "speedCoveredNanos",
+            "columnName": "speedCoveredNanos",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "movingNanos",
+            "columnName": "movingNanos",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "stoppedNanos",
+            "columnName": "stoppedNanos",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "unknownNanos",
+            "columnName": "unknownNanos",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "speedCoverage",
+            "columnName": "speedCoverage",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "movementCoverage",
+            "columnName": "movementCoverage",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "algorithmVersion",
+            "columnName": "algorithmVersion",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "routeStorageEnabled",
+            "columnName": "routeStorageEnabled",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        }
+      },
+      {
+        "tableName": "trip_samples",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`sampleId` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `tripId` TEXT NOT NULL, `elapsedRealtimeNanos` INTEGER NOT NULL, `wallTimeUtcMillis` INTEGER NOT NULL, `speedMetersPerSecond` REAL, `accuracyMetersPerSecond` REAL, `provider` TEXT, `accepted` INTEGER NOT NULL, `movementState` TEXT NOT NULL, `latitude` REAL, `longitude` REAL, FOREIGN KEY(`tripId`) REFERENCES `trips`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "sampleId",
+            "columnName": "sampleId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "tripId",
+            "columnName": "tripId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "elapsedRealtimeNanos",
+            "columnName": "elapsedRealtimeNanos",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "wallTimeUtcMillis",
+            "columnName": "wallTimeUtcMillis",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "speedMetersPerSecond",
+            "columnName": "speedMetersPerSecond",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "accuracyMetersPerSecond",
+            "columnName": "accuracyMetersPerSecond",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "provider",
+            "columnName": "provider",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "accepted",
+            "columnName": "accepted",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "movementState",
+            "columnName": "movementState",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "latitude",
+            "columnName": "latitude",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "longitude",
+            "columnName": "longitude",
+            "affinity": "REAL"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "sampleId"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_trip_samples_tripId",
+            "unique": false,
+            "columnNames": [
+              "tripId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_trip_samples_tripId` ON `${TABLE_NAME}` (`tripId`)"
+          },
+          {
+            "name": "index_trip_samples_tripId_elapsedRealtimeNanos",
+            "unique": true,
+            "columnNames": [
+              "tripId",
+              "elapsedRealtimeNanos"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_trip_samples_tripId_elapsedRealtimeNanos` ON `${TABLE_NAME}` (`tripId`, `elapsedRealtimeNanos`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "trips",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "tripId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'f50224ae153c3b73d299a64218f6ec9d')"
+    ]
+  }
+}

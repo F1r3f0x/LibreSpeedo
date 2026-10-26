@@ -17,6 +17,7 @@
 package com.plabin.librespeedo
 
 import android.Manifest
+import android.os.Build
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.view.WindowManager
@@ -37,6 +38,8 @@ import com.plabin.librespeedo.ui.LicenseScreen
 import com.plabin.librespeedo.ui.SettingsScreen
 import com.plabin.librespeedo.ui.SpeedometerScreen
 import com.plabin.librespeedo.ui.SpeedometerViewModel
+import com.plabin.librespeedo.ui.TripHistoryScreen
+import com.plabin.librespeedo.trips.TripEndReason
 import com.plabin.librespeedo.ui.theme.LibreSpeedoTheme
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -51,6 +54,18 @@ import androidx.navigation.compose.rememberNavController
 class MainActivity : ComponentActivity() {
 
     private val viewModel: SpeedometerViewModel by viewModels()
+    private lateinit var settingsRepository: SettingsRepository
+    private var pendingAutomaticLoggingEnable = false
+
+    private val bluetoothPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        if (granted) {
+            viewModel.refreshPairedCars()
+            if (pendingAutomaticLoggingEnable) settingsRepository.setAutomaticTripLogging(true)
+        } else if (pendingAutomaticLoggingEnable) {
+            settingsRepository.setAutomaticTripLogging(false)
+        }
+        pendingAutomaticLoggingEnable = false
+    }
 
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -66,13 +81,19 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
-        val settingsRepository = SettingsRepository(this)
+        settingsRepository = SettingsRepository(this)
         
         checkPermissionsAndStart()
 
         enableEdgeToEdge()
         setContent {
             val uiState by viewModel.uiState.collectAsState()
+            val tripLogger by viewModel.tripLogger.collectAsState()
+            val autoLogging by settingsRepository.automaticTripLogging.collectAsState()
+            val selectedCarName by settingsRepository.selectedCarName.collectAsState()
+            val tripRetentionDays by settingsRepository.tripRetentionDays.collectAsState()
+            val storeTripRoute by settingsRepository.storeTripRoute.collectAsState()
+            val stableMountConfirmed by settingsRepository.stableMountConfirmed.collectAsState()
             val activeWidgets by viewModel.activeWidgets.collectAsState()
             val isOledTheme by settingsRepository.isOledTheme.collectAsState()
             val isKeepScreenOn by settingsRepository.isKeepScreenOn.collectAsState()
@@ -112,7 +133,11 @@ class MainActivity : ComponentActivity() {
                             analogStyle = analogStyle,
                             onAnalogStyleChange = settingsRepository::setAnalogSpeedometerStyle,
                             digitalStyle = digitalStyle,
-                            onDigitalStyleChange = settingsRepository::setDigitalSpeedometerStyle
+                            onDigitalStyleChange = settingsRepository::setDigitalSpeedometerStyle,
+                            tripLogger = tripLogger,
+                            onTripStart = viewModel::startManualTrip,
+                            onTripFinish = { viewModel.finishTrip() },
+                            onTripHistory = { navController.navigate("trip-history") }
                         )
                     }
                     composable("settings") {
@@ -125,7 +150,34 @@ class MainActivity : ComponentActivity() {
                             onEditModeChanged = { settingsRepository.setEditMode(it) },
                             onResetLayout = viewModel::resetLayout,
                             onNavigateBack = { navController.popBackStack() },
-                            onNavigateToAbout = { navController.navigate("about") }
+                            onNavigateToAbout = { navController.navigate("about") },
+                            automaticTripLogging = autoLogging,
+                            selectedCarName = selectedCarName,
+                            carConnection = tripLogger.carConnection,
+                            bluetoothPermissionGranted = hasBluetoothConnectPermission(),
+                            pairedCars = tripLogger.pairedCars,
+                            onAutomaticTripLoggingChanged = { settingsRepository.setAutomaticTripLogging(it) },
+                            onRequestBluetoothPermission = { enableLogging -> requestBluetoothConnectPermission(enableLogging) },
+                            onRefreshPairedCars = { viewModel.refreshPairedCars() },
+                            onSelectCar = { car ->
+                                settingsRepository.setSelectedCar(car.address, car.name)
+                                viewModel.refreshPairedCars()
+                            },
+                            tripRetentionDays = tripRetentionDays,
+                            onTripRetentionDaysChange = settingsRepository::setTripRetentionDays,
+                            storeTripRoute = storeTripRoute,
+                            onStoreTripRouteChanged = settingsRepository::setStoreTripRoute,
+                            stableMountConfirmed = stableMountConfirmed,
+                            onStableMountConfirmedChanged = settingsRepository::setStableMountConfirmed
+                        )
+                    }
+                    composable("trip-history") {
+                        TripHistoryScreen(
+                            trips = tripLogger.trips,
+                            onDelete = viewModel::deleteTrip,
+                            onBack = { navController.popBackStack() },
+                            loadSamples = viewModel::loadTripSamples,
+                            loadEvents = viewModel::loadDrivingEvents
                         )
                     }
                     composable("about") {
@@ -143,6 +195,38 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+
+    private fun hasBluetoothConnectPermission(): Boolean = Build.VERSION.SDK_INT < 31 ||
+        ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED
+
+    private fun requestBluetoothConnectPermission(enableLogging: Boolean) {
+        pendingAutomaticLoggingEnable = enableLogging
+        if (hasBluetoothConnectPermission()) {
+            viewModel.refreshPairedCars()
+            if (enableLogging) settingsRepository.setAutomaticTripLogging(true)
+            pendingAutomaticLoggingEnable = false
+        } else {
+            bluetoothPermissionLauncher.launch(Manifest.permission.BLUETOOTH_CONNECT)
+        }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        viewModel.setAppVisible(true)
+        if (hasLocationPermission()) viewModel.startTracking()
+    }
+
+    override fun onStop() {
+        super.onStop()
+        if (isChangingConfigurations) return
+        viewModel.setAppVisible(false)
+        viewModel.finishTrip(TripEndReason.BACKGROUND)
+        viewModel.stopTracking()
+    }
+
+    private fun hasLocationPermission(): Boolean =
+        ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED ||
+            ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
 
     /**
      * Checks if the required location permissions have been granted.

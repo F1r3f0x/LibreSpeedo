@@ -48,6 +48,10 @@ import com.plabin.librespeedo.data.SpeedUnit
 import com.plabin.librespeedo.data.WidgetSpan
 import com.plabin.librespeedo.ui.components.WidgetContainer
 import com.plabin.librespeedo.ui.theme.LibreSpeedoTheme
+import com.plabin.librespeedo.trips.TripEntity
+import com.plabin.librespeedo.trips.TripStatus
+import com.plabin.librespeedo.trips.TripEndReason
+import com.plabin.librespeedo.trips.CarConnection
 
 /**
  * Returns the default [WidgetSpan] size configuration for a given [WidgetType].
@@ -98,6 +102,10 @@ fun SpeedometerScreen(
     onWidgetSpanChange: (WidgetType, WidgetSpan) -> Unit,
     onSpeedUnitChange: (SpeedUnit) -> Unit,
     onSettingsClick: () -> Unit,
+    tripLogger: TripLoggerUiState = TripLoggerUiState(),
+    onTripStart: () -> Unit = {},
+    onTripFinish: () -> Unit = {},
+    onTripHistory: () -> Unit = {},
     modifier: Modifier = Modifier,
     chronometerState: ChronometerState = remember { ChronometerState() },
     analogStyle: AnalogSpeedometerStyle = AnalogSpeedometerStyle.CLASSIC,
@@ -174,6 +182,15 @@ fun SpeedometerScreen(
             }
             Spacer(modifier = Modifier.height(if (isLandscape) 8.dp else 24.dp))
 
+            TripLoggerCard(
+                state = tripLogger,
+                speedKmh = uiState.speedKmh,
+                onStart = onTripStart,
+                onFinish = onTripFinish,
+                onHistory = onTripHistory
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+
             ReorderableWidgetGrid(
                 widgets = activeWidgets,
                 isEditMode = isEditMode,
@@ -190,6 +207,56 @@ fun SpeedometerScreen(
                 digitalStyle = digitalStyle,
                 onDigitalStyleChange = onDigitalStyleChange
             )
+        }
+    }
+}
+
+@Composable
+private fun TripLoggerCard(
+    state: TripLoggerUiState,
+    speedKmh: Float,
+    onStart: () -> Unit,
+    onFinish: () -> Unit,
+    onHistory: () -> Unit
+) {
+    val trip = state.trip
+    var elapsedSeconds by remember(trip?.id) { mutableLongStateOf(0L) }
+    LaunchedEffect(trip?.id, trip?.startElapsedNanos) {
+        while (trip != null) {
+            elapsedSeconds = ((android.os.SystemClock.elapsedRealtimeNanos() - trip.startElapsedNanos).coerceAtLeast(0L) / 1_000_000_000L)
+            kotlinx.coroutines.delay(1_000L)
+        }
+    }
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                Text("Trip logger", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                Text(
+                    if (trip != null) "Recording · ${"%.0f".format(speedKmh)} km/h"
+                    else when (state.carConnection) {
+                        CarConnection.CONNECTED -> "Car connected · armed"
+                        CarConnection.DISCONNECTED -> "Car disconnected · ready"
+                        CarConnection.UNKNOWN -> "Manual logging ready"
+                    }
+                )
+            }
+            Text(
+                if (trip != null) "Elapsed ${"%02d:%02d:%02d".format(elapsedSeconds / 3600, (elapsedSeconds % 3600) / 60, elapsedSeconds % 60)} · stopped ${"%02d:%02d".format(trip.stoppedNanos / 60_000_000_000L, (trip.stoppedNanos / 1_000_000_000L) % 60)} · ${"%.2f".format(trip.distanceMeters / 1000)} km"
+                else "Log speed, distance, and stopped time while LibreSpeedo is open.",
+                style = MaterialTheme.typography.bodySmall
+            )
+            if (trip != null) Text(
+                if (state.motionAvailable) "Motion sensor available · a rigid mount and course data are required for directional G metrics."
+                else "Motion sensor unavailable · speed and time will still be recorded.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            state.error?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                if (trip == null) Button(onClick = onStart, enabled = state.isReady) { Text(if (state.isReady) "Start trip" else "Loading trips…") }
+                else Button(onClick = onFinish) { Text("Finish") }
+                TextButton(onClick = onHistory) { Text("History (${state.trips.size})") }
+            }
         }
     }
 }

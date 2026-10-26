@@ -1,0 +1,644 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 3,
+    "identityHash": "dee60e381632d9ab17dccd33361b50bc",
+    "entities": [
+      {
+        "tableName": "trips",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `startUtcMillis` INTEGER NOT NULL, `endUtcMillis` INTEGER, `startElapsedNanos` INTEGER NOT NULL, `endElapsedNanos` INTEGER, `bootSession` TEXT NOT NULL, `origin` TEXT NOT NULL, `carAddress` TEXT, `status` TEXT NOT NULL, `endReason` TEXT, `lastCheckpointElapsedNanos` INTEGER NOT NULL, `topSpeedMetersPerSecond` REAL, `distanceMeters` REAL NOT NULL, `speedIntegralMeters` REAL NOT NULL, `speedCoveredNanos` INTEGER NOT NULL, `movingNanos` INTEGER NOT NULL, `stoppedNanos` INTEGER NOT NULL, `unknownNanos` INTEGER NOT NULL, `speedCoverage` REAL NOT NULL, `movementCoverage` REAL NOT NULL, `maximumHorizontalG` REAL, `averageHorizontalG` REAL, `movingAverageHorizontalG` REAL, `maximumVerticalG` REAL, `maximumTotalDynamicG` REAL, `rawDiagnosticPeakG` REAL, `horizontalGIntegralSeconds` REAL NOT NULL DEFAULT 0, `movingHorizontalGIntegralSeconds` REAL NOT NULL DEFAULT 0, `validGDurationNanos` INTEGER NOT NULL DEFAULT 0, `movingValidGDurationNanos` INTEGER NOT NULL DEFAULT 0, `totalDynamicGDurationNanos` INTEGER NOT NULL DEFAULT 0, `motionAlgorithmVersion` INTEGER NOT NULL DEFAULT 1, `algorithmVersion` INTEGER NOT NULL, `routeStorageEnabled` INTEGER NOT NULL, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "startUtcMillis",
+            "columnName": "startUtcMillis",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "endUtcMillis",
+            "columnName": "endUtcMillis",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "startElapsedNanos",
+            "columnName": "startElapsedNanos",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "endElapsedNanos",
+            "columnName": "endElapsedNanos",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "bootSession",
+            "columnName": "bootSession",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "origin",
+            "columnName": "origin",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "carAddress",
+            "columnName": "carAddress",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "status",
+            "columnName": "status",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "endReason",
+            "columnName": "endReason",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "lastCheckpointElapsedNanos",
+            "columnName": "lastCheckpointElapsedNanos",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "topSpeedMetersPerSecond",
+            "columnName": "topSpeedMetersPerSecond",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "distanceMeters",
+            "columnName": "distanceMeters",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "speedIntegralMeters",
+            "columnName": "speedIntegralMeters",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "speedCoveredNanos",
+            "columnName": "speedCoveredNanos",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "movingNanos",
+            "columnName": "movingNanos",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "stoppedNanos",
+            "columnName": "stoppedNanos",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "unknownNanos",
+            "columnName": "unknownNanos",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "speedCoverage",
+            "columnName": "speedCoverage",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "movementCoverage",
+            "columnName": "movementCoverage",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "maximumHorizontalG",
+            "columnName": "maximumHorizontalG",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "averageHorizontalG",
+            "columnName": "averageHorizontalG",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "movingAverageHorizontalG",
+            "columnName": "movingAverageHorizontalG",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "maximumVerticalG",
+            "columnName": "maximumVerticalG",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "maximumTotalDynamicG",
+            "columnName": "maximumTotalDynamicG",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "rawDiagnosticPeakG",
+            "columnName": "rawDiagnosticPeakG",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "horizontalGIntegralSeconds",
+            "columnName": "horizontalGIntegralSeconds",
+            "affinity": "REAL",
+            "notNull": true,
+            "defaultValue": "0"
+          },
+          {
+            "fieldPath": "movingHorizontalGIntegralSeconds",
+            "columnName": "movingHorizontalGIntegralSeconds",
+            "affinity": "REAL",
+            "notNull": true,
+            "defaultValue": "0"
+          },
+          {
+            "fieldPath": "validGDurationNanos",
+            "columnName": "validGDurationNanos",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          },
+          {
+            "fieldPath": "movingValidGDurationNanos",
+            "columnName": "movingValidGDurationNanos",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          },
+          {
+            "fieldPath": "totalDynamicGDurationNanos",
+            "columnName": "totalDynamicGDurationNanos",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          },
+          {
+            "fieldPath": "motionAlgorithmVersion",
+            "columnName": "motionAlgorithmVersion",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "1"
+          },
+          {
+            "fieldPath": "algorithmVersion",
+            "columnName": "algorithmVersion",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "routeStorageEnabled",
+            "columnName": "routeStorageEnabled",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        }
+      },
+      {
+        "tableName": "trip_samples",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`sampleId` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `tripId` TEXT NOT NULL, `elapsedRealtimeNanos` INTEGER NOT NULL, `wallTimeUtcMillis` INTEGER NOT NULL, `speedMetersPerSecond` REAL, `accuracyMetersPerSecond` REAL, `provider` TEXT, `accepted` INTEGER NOT NULL, `movementState` TEXT NOT NULL, `latitude` REAL, `longitude` REAL, `horizontalG` REAL, `verticalG` REAL, `totalDynamicG` REAL, `motionSource` TEXT, `qualityFlags` INTEGER NOT NULL DEFAULT 0, FOREIGN KEY(`tripId`) REFERENCES `trips`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "sampleId",
+            "columnName": "sampleId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "tripId",
+            "columnName": "tripId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "elapsedRealtimeNanos",
+            "columnName": "elapsedRealtimeNanos",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "wallTimeUtcMillis",
+            "columnName": "wallTimeUtcMillis",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "speedMetersPerSecond",
+            "columnName": "speedMetersPerSecond",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "accuracyMetersPerSecond",
+            "columnName": "accuracyMetersPerSecond",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "provider",
+            "columnName": "provider",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "accepted",
+            "columnName": "accepted",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "movementState",
+            "columnName": "movementState",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "latitude",
+            "columnName": "latitude",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "longitude",
+            "columnName": "longitude",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "horizontalG",
+            "columnName": "horizontalG",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "verticalG",
+            "columnName": "verticalG",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "totalDynamicG",
+            "columnName": "totalDynamicG",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "motionSource",
+            "columnName": "motionSource",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "qualityFlags",
+            "columnName": "qualityFlags",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "sampleId"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_trip_samples_tripId",
+            "unique": false,
+            "columnNames": [
+              "tripId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_trip_samples_tripId` ON `${TABLE_NAME}` (`tripId`)"
+          },
+          {
+            "name": "index_trip_samples_tripId_elapsedRealtimeNanos",
+            "unique": true,
+            "columnNames": [
+              "tripId",
+              "elapsedRealtimeNanos"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_trip_samples_tripId_elapsedRealtimeNanos` ON `${TABLE_NAME}` (`tripId`, `elapsedRealtimeNanos`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "trips",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "tripId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "motion_chunks",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`chunkId` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `tripId` TEXT NOT NULL, `startElapsedRealtimeNanos` INTEGER NOT NULL, `endElapsedRealtimeNanos` INTEGER NOT NULL, `sampleCount` INTEGER NOT NULL, `source` TEXT NOT NULL, `encodingVersion` INTEGER NOT NULL DEFAULT 1, `compressedSamples` BLOB NOT NULL, FOREIGN KEY(`tripId`) REFERENCES `trips`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "chunkId",
+            "columnName": "chunkId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "tripId",
+            "columnName": "tripId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "startElapsedRealtimeNanos",
+            "columnName": "startElapsedRealtimeNanos",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "endElapsedRealtimeNanos",
+            "columnName": "endElapsedRealtimeNanos",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sampleCount",
+            "columnName": "sampleCount",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "source",
+            "columnName": "source",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "encodingVersion",
+            "columnName": "encodingVersion",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "1"
+          },
+          {
+            "fieldPath": "compressedSamples",
+            "columnName": "compressedSamples",
+            "affinity": "BLOB",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "chunkId"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_motion_chunks_tripId",
+            "unique": false,
+            "columnNames": [
+              "tripId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_motion_chunks_tripId` ON `${TABLE_NAME}` (`tripId`)"
+          },
+          {
+            "name": "index_motion_chunks_endElapsedRealtimeNanos",
+            "unique": false,
+            "columnNames": [
+              "endElapsedRealtimeNanos"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_motion_chunks_endElapsedRealtimeNanos` ON `${TABLE_NAME}` (`endElapsedRealtimeNanos`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "trips",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "tripId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "driving_events",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`eventId` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `tripId` TEXT NOT NULL, `type` TEXT NOT NULL, `startElapsedRealtimeNanos` INTEGER NOT NULL, `endElapsedRealtimeNanos` INTEGER NOT NULL, `peakValue` REAL NOT NULL, `durationNanos` INTEGER NOT NULL, `speedContextMetersPerSecond` REAL, `confidence` REAL NOT NULL, `detectorVersion` INTEGER NOT NULL, `supportingChunkIds` TEXT, FOREIGN KEY(`tripId`) REFERENCES `trips`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "eventId",
+            "columnName": "eventId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "tripId",
+            "columnName": "tripId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "type",
+            "columnName": "type",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "startElapsedRealtimeNanos",
+            "columnName": "startElapsedRealtimeNanos",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "endElapsedRealtimeNanos",
+            "columnName": "endElapsedRealtimeNanos",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "peakValue",
+            "columnName": "peakValue",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "durationNanos",
+            "columnName": "durationNanos",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "speedContextMetersPerSecond",
+            "columnName": "speedContextMetersPerSecond",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "confidence",
+            "columnName": "confidence",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "detectorVersion",
+            "columnName": "detectorVersion",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "supportingChunkIds",
+            "columnName": "supportingChunkIds",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "eventId"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_driving_events_tripId",
+            "unique": false,
+            "columnNames": [
+              "tripId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_driving_events_tripId` ON `${TABLE_NAME}` (`tripId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "trips",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "tripId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "trip_ratings",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`ratingId` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `tripId` TEXT NOT NULL, `scoringVersion` INTEGER NOT NULL, `calculatedUtcMillis` INTEGER NOT NULL, `totalScore` REAL, `accelerationScore` REAL, `brakingScore` REAL, `corneringScore` REAL, `eligibility` TEXT NOT NULL, `explanation` TEXT NOT NULL, FOREIGN KEY(`tripId`) REFERENCES `trips`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "ratingId",
+            "columnName": "ratingId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "tripId",
+            "columnName": "tripId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "scoringVersion",
+            "columnName": "scoringVersion",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "calculatedUtcMillis",
+            "columnName": "calculatedUtcMillis",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "totalScore",
+            "columnName": "totalScore",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "accelerationScore",
+            "columnName": "accelerationScore",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "brakingScore",
+            "columnName": "brakingScore",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "corneringScore",
+            "columnName": "corneringScore",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "eligibility",
+            "columnName": "eligibility",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "explanation",
+            "columnName": "explanation",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "ratingId"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_trip_ratings_tripId",
+            "unique": false,
+            "columnNames": [
+              "tripId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_trip_ratings_tripId` ON `${TABLE_NAME}` (`tripId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "trips",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "tripId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'dee60e381632d9ab17dccd33361b50bc')"
+    ]
+  }
+}

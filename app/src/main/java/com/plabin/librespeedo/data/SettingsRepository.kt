@@ -92,6 +92,49 @@ class SettingsRepository(private val prefs: SharedPreferences) {
     /** Emits true if dashboard edit mode (drag-and-drop, resizing, widget management) is active. */
     val isEditMode: StateFlow<Boolean> = _isEditMode.asStateFlow()
 
+    private val _automaticTripLogging = MutableStateFlow(prefs.getBoolean("automatic_trip_logging", false))
+    val automaticTripLogging: StateFlow<Boolean> = _automaticTripLogging.asStateFlow()
+    private val _selectedCarAddress = MutableStateFlow(prefs.getString("trip_car_address", null))
+    val selectedCarAddress: StateFlow<String?> = _selectedCarAddress.asStateFlow()
+    private val _selectedCarName = MutableStateFlow(prefs.getString("trip_car_name", null))
+    val selectedCarName: StateFlow<String?> = _selectedCarName.asStateFlow()
+    private val _tripRetentionDays = MutableStateFlow(prefs.getInt("trip_retention_days", 30))
+    val tripRetentionDays: StateFlow<Int> = _tripRetentionDays.asStateFlow()
+    private val _storeTripRoute = MutableStateFlow(prefs.getBoolean("store_trip_route", false))
+    val storeTripRoute: StateFlow<Boolean> = _storeTripRoute.asStateFlow()
+    private val _stableMountConfirmed = MutableStateFlow(prefs.getBoolean("stable_phone_mount_confirmed", false))
+    val stableMountConfirmed: StateFlow<Boolean> = _stableMountConfirmed.asStateFlow()
+
+    fun setStoreTripRoute(enabled: Boolean) {
+        prefs.edit { putBoolean("store_trip_route", enabled) }
+        _storeTripRoute.value = enabled
+    }
+
+    fun setStableMountConfirmed(confirmed: Boolean) {
+        prefs.edit { putBoolean("stable_phone_mount_confirmed", confirmed) }
+        _stableMountConfirmed.value = confirmed
+    }
+
+    fun setTripRetentionDays(days: Int) {
+        val normalized = days.coerceIn(0, 3650)
+        prefs.edit { putInt("trip_retention_days", normalized) }
+        _tripRetentionDays.value = normalized
+    }
+
+    fun setAutomaticTripLogging(enabled: Boolean) {
+        prefs.edit { putBoolean("automatic_trip_logging", enabled) }
+        _automaticTripLogging.value = enabled
+    }
+
+    fun setSelectedCar(address: String?, name: String?) {
+        prefs.edit {
+            if (address == null) remove("trip_car_address") else putString("trip_car_address", address)
+            if (name == null) remove("trip_car_name") else putString("trip_car_name", name)
+        }
+        _selectedCarAddress.value = address
+        _selectedCarName.value = name
+    }
+
     private val _widgetSpans = MutableStateFlow(
         prefs.getString("widget_spans", null)?.split(",")?.mapNotNull {
             val parts = it.split(":")

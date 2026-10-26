@@ -62,32 +62,29 @@ class SettingsScreenTest {
         composeTestRule.onNodeWithText("OLED Theme").assertIsDisplayed()
         composeTestRule.onNodeWithText("Keep Screen On").assertIsDisplayed()
         composeTestRule.onNodeWithText("Edit Dashboard").assertIsDisplayed()
-        composeTestRule.onNodeWithText("Reset Dashboard Layout").assertIsDisplayed()
-        composeTestRule.onNodeWithText("About LibreSpeedo").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Reset Dashboard Layout").performScrollTo().assertIsDisplayed()
+        composeTestRule.onNodeWithText("About LibreSpeedo").performScrollTo().assertIsDisplayed()
 
-        // Test toggle switches
-        val switches = composeTestRule.onAllNodes(isToggleable())
-        if (switches.fetchSemanticsNodes().size >= 3) {
-            switches[0].performClick()
-            assertTrue(oledChanged)
+        // Test named switches, including the new trip logging controls.
+        composeTestRule.onNodeWithContentDescription("OLED Theme").performScrollTo().performClick()
+        assertTrue(oledChanged)
 
-            switches[1].performClick()
-            assertTrue(keepScreenOnChanged)
+        composeTestRule.onNodeWithContentDescription("Keep Screen On").performScrollTo().performClick()
+        assertTrue(keepScreenOnChanged)
 
-            switches[2].performClick()
-            assertTrue(editModeChanged)
-        }
+        composeTestRule.onNodeWithContentDescription("Edit Dashboard").performScrollTo().performClick()
+        assertTrue(editModeChanged)
 
         // Test back navigation
         composeTestRule.onNodeWithContentDescription("Back").performClick()
         assertTrue(backCalled)
 
         // Test navigate to about
-        composeTestRule.onNodeWithText("About LibreSpeedo").performClick()
+        composeTestRule.onNodeWithText("About LibreSpeedo").performScrollTo().performClick()
         assertTrue(aboutCalled)
 
         // Test opening and confirming reset layout dialog
-        composeTestRule.onNodeWithText("Reset Dashboard Layout").performClick()
+        composeTestRule.onNodeWithText("Reset Dashboard Layout").performScrollTo().performClick()
         composeTestRule.onNodeWithText("Reset Layout").assertIsDisplayed()
         composeTestRule.onNodeWithText("Reset").performClick()
         assertTrue(resetLayoutCalled)
@@ -112,7 +109,7 @@ class SettingsScreenTest {
         }
 
         // Open dialog and click cancel
-        composeTestRule.onNodeWithText("Reset Dashboard Layout").performClick()
+        composeTestRule.onNodeWithText("Reset Dashboard Layout").performScrollTo().performClick()
         composeTestRule.onNodeWithText("Cancel").performClick()
         assertFalse(resetLayoutCalled)
     }

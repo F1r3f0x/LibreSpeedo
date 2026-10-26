@@ -19,6 +19,7 @@ package com.plabin.librespeedo.ui
 import android.app.Application
 import android.content.Context
 import android.location.Location
+import androidx.test.core.app.ApplicationProvider
 import com.plabin.librespeedo.data.FakeSharedPreferences
 import com.plabin.librespeedo.data.SettingsRepository
 import com.plabin.librespeedo.data.WidgetSpan
@@ -61,7 +62,7 @@ class SpeedometerViewModelTest {
 
     @Before
     fun setUp() {
-        val app = Application()
+        val app = ApplicationProvider.getApplicationContext<Application>()
         fakePrefs = FakeSharedPreferences()
         settingsRepository = SettingsRepository(fakePrefs)
         fakeLocationClient = FakeLocationClient(app)
@@ -280,7 +281,7 @@ class SpeedometerViewModelTest {
 
     @Test
     fun activeWidgets_withCorruptedPreference_filtersOutInvalidNames() {
-        val app = Application()
+        val app = ApplicationProvider.getApplicationContext<Application>()
         val prefs = FakeSharedPreferences()
         prefs.putString("active_widgets", "SPEEDOMETER,INVALID_WIDGET_NAME,COMPASS")
         val repo = SettingsRepository(prefs)
@@ -304,7 +305,7 @@ class SpeedometerViewModelTest {
         fakeLocationClient.flow = locations
         fakeSensorClient.flow = sensors
         val vm = SpeedometerViewModel(
-            Application(), fakeLocationClient, fakeSensorClient, settingsRepository,
+            ApplicationProvider.getApplicationContext(), fakeLocationClient, fakeSensorClient, settingsRepository,
             backgroundScope, { testScheduler.currentTime }
         )
         vm.startTracking()
@@ -347,7 +348,7 @@ class SpeedometerViewModelTest {
         val locations = MutableSharedFlow<Location>()
         fakeLocationClient.flow = locations
         val vm = SpeedometerViewModel(
-            Application(), fakeLocationClient, fakeSensorClient, settingsRepository,
+            ApplicationProvider.getApplicationContext(), fakeLocationClient, fakeSensorClient, settingsRepository,
             backgroundScope, { 10_000L + testScheduler.currentTime }
         )
         vm.startTracking()
@@ -379,7 +380,7 @@ class SpeedometerViewModelTest {
             awaitCancellation()
         }
         val vm = SpeedometerViewModel(
-            Application(), fakeLocationClient, fakeSensorClient, settingsRepository, backgroundScope
+            ApplicationProvider.getApplicationContext(), fakeLocationClient, fakeSensorClient, settingsRepository, backgroundScope
         )
         vm.startTracking()
         runCurrent()
