@@ -21,11 +21,14 @@ import android.os.Build
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.view.WindowManager
+import android.net.Uri
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -40,10 +43,12 @@ import com.plabin.librespeedo.ui.SpeedometerScreen
 import com.plabin.librespeedo.ui.SpeedometerViewModel
 import com.plabin.librespeedo.ui.TripHistoryScreen
 import com.plabin.librespeedo.trips.TripEndReason
+import com.plabin.librespeedo.trips.TripDatabaseExporter
 import com.plabin.librespeedo.ui.theme.LibreSpeedoTheme
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import kotlinx.coroutines.launch
 
 /**
  * The primary entry point for LibreSpeedo.
@@ -56,6 +61,12 @@ class MainActivity : ComponentActivity() {
     private val viewModel: SpeedometerViewModel by viewModels()
     private lateinit var settingsRepository: SettingsRepository
     private var pendingAutomaticLoggingEnable = false
+
+    private val exportTripDatabaseLauncher = registerForActivityResult(
+        ActivityResultContracts.CreateDocument("application/vnd.sqlite3")
+    ) { destination ->
+        if (destination != null) exportTripDatabase(destination)
+    }
 
     private val bluetoothPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
         if (granted) {
@@ -168,7 +179,8 @@ class MainActivity : ComponentActivity() {
                             storeTripRoute = storeTripRoute,
                             onStoreTripRouteChanged = settingsRepository::setStoreTripRoute,
                             stableMountConfirmed = stableMountConfirmed,
-                            onStableMountConfirmedChanged = settingsRepository::setStableMountConfirmed
+                            onStableMountConfirmedChanged = settingsRepository::setStableMountConfirmed,
+                            onExportTripDatabase = { exportTripDatabaseLauncher.launch("librespeedo-trips.db") }
                         )
                     }
                     composable("trip-history") {
@@ -198,6 +210,21 @@ class MainActivity : ComponentActivity() {
 
     private fun hasBluetoothConnectPermission(): Boolean = Build.VERSION.SDK_INT < 31 ||
         ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED
+
+    private fun exportTripDatabase(destination: Uri) {
+        lifecycleScope.launch {
+            try {
+                viewModel.exportTripDatabase(destination)
+                Toast.makeText(this@MainActivity, "Trip database exported", Toast.LENGTH_LONG).show()
+            } catch (error: Exception) {
+                Toast.makeText(
+                    this@MainActivity,
+                    "Trip database export failed: ${error.message ?: "Unable to save file"}",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+        }
+    }
 
     private fun requestBluetoothConnectPermission(enableLogging: Boolean) {
         pendingAutomaticLoggingEnable = enableLogging

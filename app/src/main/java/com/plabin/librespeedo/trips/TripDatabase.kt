@@ -15,6 +15,7 @@ import androidx.room.Query
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.Transaction
+import androidx.room.Update
 import kotlinx.coroutines.flow.Flow
 
 @Entity(tableName = "trips")
@@ -143,7 +144,12 @@ data class TripRatingEntity(
 
 @Dao
 interface TripDao {
-    @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun putTrip(trip: TripEntity)
+    @Insert(onConflict = OnConflictStrategy.IGNORE) suspend fun insertTripIfAbsent(trip: TripEntity): Long
+    @Update suspend fun updateTrip(trip: TripEntity)
+    @Transaction
+    suspend fun putTrip(trip: TripEntity) {
+        if (insertTripIfAbsent(trip) == -1L) updateTrip(trip)
+    }
     @Insert(onConflict = OnConflictStrategy.IGNORE) suspend fun insertSample(sample: TripSampleEntity)
     @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun insertMotionChunk(chunk: MotionChunkEntity)
     @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun insertMotionChunks(chunks: List<MotionChunkEntity>)

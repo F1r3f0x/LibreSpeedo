@@ -17,6 +17,7 @@
 package com.plabin.librespeedo.ui
 
 import android.app.Application
+import android.net.Uri
 import android.os.SystemClock
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
@@ -26,16 +27,13 @@ import com.plabin.librespeedo.location.LocationClient
 import com.plabin.librespeedo.sensors.SensorClient
 import com.plabin.librespeedo.sensors.MotionClient
 import com.plabin.librespeedo.sensors.MotionSample
-import com.plabin.librespeedo.sensors.MotionSource
 import com.plabin.librespeedo.utils.SpeedConverter
 import com.plabin.librespeedo.trips.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.CoroutineStart
-import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -52,6 +50,8 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlin.math.abs
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * Defines the available modular widgets for the main dashboard screen.
@@ -195,6 +195,7 @@ class SpeedometerViewModel @JvmOverloads constructor(
     private var sensorJob: Job? = null
     private var expiryJob: Job? = null
     private var hasGpsBearing = false
+    private var latestLocationFixElapsedRealtimeNanos: Long? = null
 
     private fun invalidateLocation() {
         _uiState.value = _uiState.value.copy(
@@ -204,6 +205,34 @@ class SpeedometerViewModel @JvmOverloads constructor(
             hasLocationAccuracy = false,
             heading = _uiState.value.compassAzimuth
         )
+    }
+
+    private suspend fun markLocationExpired(fixElapsedRealtimeNanos: Long, expiredAtNanos: Long) {
+        tripMutex.withLock {
+            if (latestLocationFixElapsedRealtimeNanos != fixElapsedRealtimeNanos) return@withLock
+            val trip = activeTrip ?: return@withLock
+            val lastObservedNanos = metricAccumulator.latestTimestampNanos ?: return@withLock
+            if (lastObservedNanos > fixElapsedRealtimeNanos || expiredAtNanos <= lastObservedNanos) return@withLock
+
+            val expiredObservation = SpeedObservation(
+                elapsedRealtimeNanos = expiredAtNanos,
+                wallTimeUtcMillis = System.currentTimeMillis(),
+                speedMetersPerSecond = null,
+                accepted = false,
+                provider = "location-expired"
+            )
+            if (!metricAccumulator.add(expiredObservation)) return@withLock
+            pendingTripSamples += TripSampleEntity(
+                tripId = trip.id,
+                elapsedRealtimeNanos = expiredObservation.elapsedRealtimeNanos,
+                wallTimeUtcMillis = expiredObservation.wallTimeUtcMillis,
+                speedMetersPerSecond = null,
+                accuracyMetersPerSecond = null,
+                provider = expiredObservation.provider,
+                accepted = false,
+                movementState = MovementState.UNKNOWN.name
+            )
+        }
     }
 
     private fun useGpsHeading() = _uiState.value.isLocationFresh &&
@@ -227,7 +256,7 @@ class SpeedometerViewModel @JvmOverloads constructor(
                     endUtcMillis = System.currentTimeMillis(),
                     endElapsedNanos = unfinished.lastCheckpointElapsedNanos
                 )
-                withContext(Dispatchers.IO) { tripDao.putTrip(interrupted) }
+                tripMutex.withLock { withContext(Dispatchers.IO) { tripDao.putTrip(interrupted) } }
             }
             _tripLogger.value = _tripLogger.value.copy(isReady = true)
             tripDao.observeTrips().collect { trips -> _tripLogger.value = _tripLogger.value.copy(trips = trips) }
@@ -258,7 +287,7 @@ class SpeedometerViewModel @JvmOverloads constructor(
             settingsRepository.tripRetentionDays.collectLatest { days ->
                 if (days > 0) {
                     val cutoff = System.currentTimeMillis() - days * 86_400_000L
-                    withContext(Dispatchers.IO) { tripDao.deleteTripsBefore(cutoff) }
+                    tripMutex.withLock { withContext(Dispatchers.IO) { tripDao.deleteTripsBefore(cutoff) } }
                 }
             }
         }
@@ -268,8 +297,8 @@ class SpeedometerViewModel @JvmOverloads constructor(
         appVisible.value = visible
         if (visible) {
             refreshPairedCars()
+            _tripLogger.value = _tripLogger.value.copy(motionAvailable = motionClient.availability().available)
             if (motionJob?.isActive != true) {
-                _tripLogger.value = _tripLogger.value.copy(motionAvailable = motionClient.availability().available)
                 motionJob = scope.launch { motionClient.samples().collect { recordMotionSample(it) } }
             }
         } else {
@@ -285,7 +314,7 @@ class SpeedometerViewModel @JvmOverloads constructor(
         }
     }
 
-    private suspend fun onCarConnectionChanged(address: String, connection: CarConnection) {
+    private fun onCarConnectionChanged(address: String, connection: CarConnection) {
         if (settingsRepository.selectedCarAddress.value != address) return
         _tripLogger.value = _tripLogger.value.copy(carConnection = connection)
         if (connection == CarConnection.CONNECTED) {
@@ -305,7 +334,7 @@ class SpeedometerViewModel @JvmOverloads constructor(
     private fun beginDisconnectGrace(address: String) {
         if (_tripLogger.value.carConnection != CarConnection.DISCONNECTED || disconnectGraceJob?.isActive == true) return
         disconnectGraceJob = scope.launch {
-            delay(60_000L)
+            delay(60.seconds)
             if (_tripLogger.value.carConnection == CarConnection.DISCONNECTED && activeTrip?.carAddress == address) {
                 finishAtDisconnectBoundary(address)
             }
@@ -378,9 +407,8 @@ class SpeedometerViewModel @JvmOverloads constructor(
         }
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
     private fun finishAtDisconnectBoundary(address: String) {
-        scope.launch(start = CoroutineStart.ATOMIC) {
+        scope.launch(start = CoroutineStart.UNDISPATCHED) {
             withContext(NonCancellable) { tripMutex.withLock {
                 val checkpoint = graceTripCheckpoint ?: return@withLock
                 if (_tripLogger.value.carConnection != CarConnection.DISCONNECTED ||
@@ -410,18 +438,18 @@ class SpeedometerViewModel @JvmOverloads constructor(
     }
 
     fun startManualTrip() {
-        if (activeTrip != null) return
         scope.launch {
-            val nowElapsedNanos = SystemClock.elapsedRealtimeNanos()
-            val trip = TripEntity(
-                id = UUID.randomUUID().toString(), startUtcMillis = System.currentTimeMillis(),
-                startElapsedNanos = nowElapsedNanos, lastCheckpointElapsedNanos = nowElapsedNanos,
-                bootSession = "${android.os.Build.FINGERPRINT}:${System.currentTimeMillis() - SystemClock.elapsedRealtime()}",
-                origin = "MANUAL", status = TripStatus.RECORDING.name,
-                routeStorageEnabled = settingsRepository.storeTripRoute.value,
-                mountingConfirmed = settingsRepository.stableMountConfirmed.value
-            )
             tripMutex.withLock {
+                if (activeTrip != null) return@withLock
+                val nowElapsedNanos = SystemClock.elapsedRealtimeNanos()
+                val trip = TripEntity(
+                    id = UUID.randomUUID().toString(), startUtcMillis = System.currentTimeMillis(),
+                    startElapsedNanos = nowElapsedNanos, lastCheckpointElapsedNanos = nowElapsedNanos,
+                    bootSession = "${android.os.Build.FINGERPRINT}:${System.currentTimeMillis() - SystemClock.elapsedRealtime()}",
+                    origin = "MANUAL", status = TripStatus.RECORDING.name,
+                    routeStorageEnabled = settingsRepository.storeTripRoute.value,
+                    mountingConfirmed = settingsRepository.stableMountConfirmed.value
+                )
                 try {
                     withContext(Dispatchers.IO) { tripDao.putTrip(trip) }
                     activeTrip = trip
@@ -444,9 +472,8 @@ class SpeedometerViewModel @JvmOverloads constructor(
         }
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
     fun finishTrip(reason: TripEndReason = TripEndReason.MANUAL) {
-        scope.launch(start = CoroutineStart.ATOMIC) { withContext(NonCancellable) { finishTripInternal(reason) } }
+        scope.launch(start = CoroutineStart.UNDISPATCHED) { withContext(NonCancellable) { finishTripInternal(reason) } }
     }
 
     private suspend fun finishTripInternal(reason: TripEndReason) = tripMutex.withLock {
@@ -491,7 +518,36 @@ class SpeedometerViewModel @JvmOverloads constructor(
     }
 
     fun deleteTrip(id: String) {
-        scope.launch { withContext(Dispatchers.IO) { tripDao.deleteTrip(id) } }
+        scope.launch {
+            tripMutex.withLock { withContext(Dispatchers.IO) { tripDao.deleteTrip(id) } }
+        }
+    }
+
+    suspend fun exportTripDatabase(destination: Uri) {
+        tripMutex.withLock {
+            activeTrip?.let { trip ->
+                val checkpoint = trip.withMetrics(metricAccumulator.snapshot(), motionAccumulator.snapshot()).copy(
+                    lastCheckpointElapsedNanos = maxOf(
+                        trip.lastCheckpointElapsedNanos,
+                        metricAccumulator.latestTimestampNanos ?: trip.lastCheckpointElapsedNanos
+                    )
+                )
+                val chunks = takeMotionChunk(trip.id)
+                val events = pendingDrivingEvents.map { it.toEntity(trip.id) }
+                withContext(Dispatchers.IO) {
+                    tripDao.checkpointTrip(checkpoint, pendingTripSamples.toList(), chunks, events)
+                }
+                pendingTripSamples.clear()
+                pendingMotionSamples.lastOrNull()?.let {
+                    lastMotionChunkFlushNanos = it.elapsedRealtimeNanos
+                }
+                pendingMotionSamples.clear()
+                pendingDrivingEvents.clear()
+                activeTrip = checkpoint
+                _tripLogger.value = _tripLogger.value.copy(trip = checkpoint, error = null)
+            }
+            TripDatabaseExporter.export(getApplication(), destination)
+        }
     }
 
     suspend fun loadTripSamples(id: String): List<TripSampleEntity> = withContext(Dispatchers.IO) { tripDao.getSamples(id) }
@@ -499,11 +555,15 @@ class SpeedometerViewModel @JvmOverloads constructor(
     suspend fun loadDrivingEvents(id: String): List<DrivingEventEntity> = withContext(Dispatchers.IO) { tripDao.getDrivingEvents(id) }
 
     private suspend fun recordTripLocation(location: android.location.Location, speedMs: Double?) {
+        if (activeTrip == null && (!settingsRepository.automaticTripLogging.value ||
+                settingsRepository.selectedCarAddress.value == null ||
+                _tripLogger.value.carConnection != CarConnection.CONNECTED)
+        ) return
         tripMutex.withLock {
             val selectedAddress = settingsRepository.selectedCarAddress.value
             val elapsedNanos = location.elapsedRealtimeNanos.takeIf { it > 0L }
                 ?: SystemClock.elapsedRealtimeNanos()
-            val speedAccuracy = if (android.os.Build.VERSION.SDK_INT >= 26 && location.hasSpeedAccuracy()) location.speedAccuracyMetersPerSecond.toDouble() else null
+            val speedAccuracy = if (location.hasSpeedAccuracy()) location.speedAccuracyMetersPerSecond.toDouble() else null
             val obs = SpeedObservation(
                 elapsedRealtimeNanos = elapsedNanos,
                 wallTimeUtcMillis = location.time,
@@ -571,6 +631,9 @@ class SpeedometerViewModel @JvmOverloads constructor(
 
     private suspend fun recordMotionSample(sample: MotionSample) {
         latestMotionSample = sample
+        if (!_tripLogger.value.motionAvailable) {
+            _tripLogger.value = _tripLogger.value.copy(motionAvailable = true)
+        }
         tripMutex.withLock {
             val trip = activeTrip
             if (trip == null) {
@@ -594,8 +657,7 @@ class SpeedometerViewModel @JvmOverloads constructor(
             }
             val observation = toMotionObservation(sample, moving, trip.mountingConfirmed, course)
             if (!motionAccumulator.add(observation)) return@withLock
-            val eventEligible = trip.mountingConfirmed && course != null && speedState.isLocationFresh &&
-                speedState.isSpeedAvailable && speedState.hasLocationAccuracy && speedState.speedKmh > 10f && speedState.accuracy <= 15.0 &&
+            val eventEligible = course != null && speedState.speedKmh > 10f && speedState.accuracy <= 15.0 &&
                 sample.elapsedRealtimeNanos - trip.startElapsedNanos >= 2_000_000_000L &&
                 sample.accuracy != android.hardware.SensorManager.SENSOR_STATUS_UNRELIABLE && sample.qualityFlags == 0
             val confidence = when {
@@ -616,29 +678,6 @@ class SpeedometerViewModel @JvmOverloads constructor(
             )
             pendingMotionSamples += sample
             if (sample.elapsedRealtimeNanos - lastMotionChunkFlushNanos < 5_000_000_000L) return@withLock
-            val speedCheckpointNanos = metricAccumulator.latestTimestampNanos
-            if (speedCheckpointNanos != null && sample.elapsedRealtimeNanos > speedCheckpointNanos) {
-                val checkpointWallTime = trip.startUtcMillis + (sample.elapsedRealtimeNanos - trip.startElapsedNanos) / 1_000_000L
-                val gap = SpeedObservation(
-                    elapsedRealtimeNanos = sample.elapsedRealtimeNanos,
-                    wallTimeUtcMillis = checkpointWallTime,
-                    speedMetersPerSecond = null,
-                    accepted = false,
-                    provider = "motion-checkpoint"
-                )
-                if (metricAccumulator.add(gap)) {
-                    pendingTripSamples += TripSampleEntity(
-                        tripId = trip.id,
-                        elapsedRealtimeNanos = gap.elapsedRealtimeNanos,
-                        wallTimeUtcMillis = gap.wallTimeUtcMillis,
-                        speedMetersPerSecond = null,
-                        accuracyMetersPerSecond = null,
-                        provider = gap.provider,
-                        accepted = false,
-                        movementState = MovementState.UNKNOWN.name
-                    )
-                }
-            }
             val speedMetrics = metricAccumulator.snapshot()
             val checkpoint = trip.withMetrics(speedMetrics, motionAccumulator.snapshot()).copy(
                 lastCheckpointElapsedNanos = maxOf(trip.lastCheckpointElapsedNanos, metricAccumulator.latestTimestampNanos ?: sample.elapsedRealtimeNanos)
@@ -904,7 +943,7 @@ class SpeedometerViewModel @JvmOverloads constructor(
      */
     fun addWidget(widget: WidgetType) {
         if (!_activeWidgets.value.contains(widget)) {
-            _activeWidgets.value = _activeWidgets.value + widget
+            _activeWidgets.value += widget
             saveWidgets()
         }
     }
@@ -950,12 +989,20 @@ class SpeedometerViewModel @JvmOverloads constructor(
             }
             .onEach { location ->
                 expiryJob?.cancel()
-                val fixTime = if (location.elapsedRealtimeNanos > 0L) {
-                    location.elapsedRealtimeNanos / 1_000_000L
-                } else elapsedRealtime()
+                val fixElapsedRealtimeNanos = location.elapsedRealtimeNanos.takeIf { it > 0L }
+                    ?: (elapsedRealtime() * 1_000_000L)
+                val fixTime = fixElapsedRealtimeNanos / 1_000_000L
+                val previousFix = latestLocationFixElapsedRealtimeNanos
+                if (previousFix == null || fixElapsedRealtimeNanos >= previousFix) {
+                    latestLocationFixElapsedRealtimeNanos = fixElapsedRealtimeNanos
+                }
                 val remainingMs = 5_000L - (elapsedRealtime() - fixTime).coerceAtLeast(0L)
                 if (remainingMs <= 0L) {
                     invalidateLocation()
+                    markLocationExpired(
+                        fixElapsedRealtimeNanos,
+                        maxOf(fixElapsedRealtimeNanos + 5_000_000_000L, (elapsedRealtime() * 1_000_000L))
+                    )
                     return@onEach
                 }
                 val speedMs = if (location.hasSpeed()) location.speed else 0f
@@ -980,8 +1027,11 @@ class SpeedometerViewModel @JvmOverloads constructor(
                     provider = location.provider ?: "Unknown"
                 )
                 expiryJob = scope.launch {
-                    delay(remainingMs)
-                    invalidateLocation()
+                    delay(remainingMs.milliseconds)
+                    if (latestLocationFixElapsedRealtimeNanos == fixElapsedRealtimeNanos) {
+                        invalidateLocation()
+                        markLocationExpired(fixElapsedRealtimeNanos, fixElapsedRealtimeNanos + 5_000_000_000L)
+                    }
                 }
             }
             .launchIn(scope)

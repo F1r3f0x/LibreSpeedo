@@ -98,7 +98,8 @@ fun SettingsScreen(
     storeTripRoute: Boolean = false,
     onStoreTripRouteChanged: (Boolean) -> Unit = {},
     stableMountConfirmed: Boolean = false,
-    onStableMountConfirmedChanged: (Boolean) -> Unit = {}
+    onStableMountConfirmedChanged: (Boolean) -> Unit = {},
+    onExportTripDatabase: () -> Unit = {}
 ) {
     var showResetDialog by remember { mutableStateOf(false) }
     var showCarPicker by remember { mutableStateOf(false) }
@@ -225,6 +226,14 @@ fun SettingsScreen(
             }) {
                 Text("Trip data retention: ${if (tripRetentionDays == 0) "Keep indefinitely" else "$tripRetentionDays days"} · change")
             }
+            OutlinedButton(onClick = onExportTripDatabase, modifier = Modifier.fillMaxWidth()) {
+                Text("Export trip database")
+            }
+            Text(
+                "Save a SQLite copy of trips, samples, events, and any routes you chose to store.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
             SettingRow(
                 title = "Store trip route",
                 description = "Save coordinates with trip samples. Turn this off to keep trip metrics without retaining a route.",
