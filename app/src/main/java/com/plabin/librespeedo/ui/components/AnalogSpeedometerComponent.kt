@@ -36,6 +36,8 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.platform.LocalLocale
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -84,9 +86,10 @@ fun AnalogSpeedometerComponent(
     modifier: Modifier = Modifier,
     span: WidgetSpan = WidgetSpan.FULL_WIDTH
 ) {
+    val speedAvailable = uiState.isLocationFresh && uiState.isSpeedAvailable
     val speedRawMs = uiState.speedKmh / 3.6f
 
-    val displaySpeed = when (speedUnit) {
+    val displaySpeed = if (!speedAvailable) 0f else when (speedUnit) {
         SpeedUnit.KMH -> max(0f, uiState.speedKmh)
         SpeedUnit.MPH -> max(0f, SpeedConverter.msToMph(speedRawMs))
         SpeedUnit.MS -> max(0f, speedRawMs)
@@ -136,7 +139,9 @@ fun AnalogSpeedometerComponent(
             modifier = Modifier.size(dialSize),
             contentAlignment = Alignment.Center
         ) {
-            Canvas(modifier = Modifier.fillMaxSize()) {
+            Canvas(modifier = Modifier.fillMaxSize().semantics {
+                contentDescription = if (speedAvailable) "Speed gauge" else "Speed unavailable"
+            }) {
                 val center = Offset(size.width / 2f, size.height / 2f)
                 val strokeWidth = when (span) {
                     WidgetSpan.HALF -> 4.dp.toPx()
@@ -166,7 +171,7 @@ fun AnalogSpeedometerComponent(
                     1.0f to tertiaryColor,
                     center = center
                 )
-                drawArc(
+                if (speedAvailable) drawArc(
                     brush = arcGradient,
                     startAngle = startAngle,
                     sweepAngle = activeSweep,
@@ -198,7 +203,7 @@ fun AnalogSpeedometerComponent(
                     }
                     val tickWidth = if (isMajor) 2.dp.toPx() else 1.dp.toPx()
                     val tickColor = if (isMajor) {
-                        if (tickFraction <= speedFraction) primaryColor else inactiveTickColor
+                        if (speedAvailable && tickFraction <= speedFraction) primaryColor else inactiveTickColor
                     } else {
                         trackBackgroundColor
                     }
@@ -221,7 +226,7 @@ fun AnalogSpeedometerComponent(
                 }
 
                 // Draw sweeping needle (pointing at animatedNeedleAngle)
-                rotate(degrees = animatedNeedleAngle - 90f, pivot = center) {
+                if (speedAvailable) rotate(degrees = animatedNeedleAngle - 90f, pivot = center) {
                     val needleLength = arcRadius * 0.85f
                     val needleBaseWidth = when (span) {
                         WidgetSpan.HALF -> 2.5.dp.toPx()
@@ -266,7 +271,7 @@ fun AnalogSpeedometerComponent(
             horizontalArrangement = Arrangement.Center
         ) {
             Text(
-                text = String.format(LocalLocale.current.platformLocale, "%.1f", displaySpeed),
+                text = if (speedAvailable) String.format(LocalLocale.current.platformLocale, "%.1f", displaySpeed) else "—",
                 fontWeight = FontWeight.Bold,
                 fontSize = if (span == WidgetSpan.HALF) 13.sp else 16.sp,
                 color = primaryColor

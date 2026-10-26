@@ -16,17 +16,18 @@
  */
 package com.plabin.librespeedo.location
 
+import android.content.Intent
 import android.content.Context
+import android.app.Application
 import android.location.Location
 import android.location.LocationManager
+import android.location.LocationRequest
 import androidx.test.core.app.ApplicationProvider
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -53,9 +54,27 @@ class LocationClientTest {
     @Before
     fun setUp() {
         context = ApplicationProvider.getApplicationContext()
+        // Android grants this merged-manifest signature permission at installation;
+        // Robolectric's older SDKs require it to be granted explicitly.
+        shadowOf(context as Application).grantPermissions(
+            "${context.packageName}.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+        )
         locationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
         shadowLocationManager = shadowOf(locationManager)
         locationClient = LocationClient(context)
+    }
+
+    @Test
+    fun fusedRequest_requiresHighAccuracyAndCleansUp() = runTest(UnconfinedTestDispatcher()) {
+        shadowLocationManager.setProviderEnabled(LocationManager.FUSED_PROVIDER, true)
+        val job = launch { locationClient.getLocationUpdates(500L).collect {} }
+
+        val request = shadowLocationManager.getLocationRequests(LocationManager.FUSED_PROVIDER).single()
+        assertEquals(LocationRequest.QUALITY_HIGH_ACCURACY, request.quality)
+        assertEquals(500L, request.intervalMillis)
+        job.cancel()
+        job.join()
+        assertTrue(shadowLocationManager.getLocationRequests(LocationManager.FUSED_PROVIDER).isEmpty())
     }
 
     @Test
@@ -89,6 +108,7 @@ class LocationClientTest {
     }
 
     @Test
+    @Config(sdk = [26, 34])
     fun getLocationUpdates_whenGpsEnabledAndFusedDisabled_emitsLocationUpdates() = runTest(UnconfinedTestDispatcher()) {
         shadowLocationManager.setProviderEnabled(LocationManager.FUSED_PROVIDER, false)
         shadowLocationManager.setProviderEnabled(LocationManager.GPS_PROVIDER, true)
@@ -148,18 +168,42 @@ class LocationClientTest {
     }
 
     @Test
-    fun getLocationUpdates_whenNoProvidersEnabled_closesWithError() = runTest(UnconfinedTestDispatcher()) {
+    fun getLocationUpdates_whenLocationEnabledAfterSubscription_recovers() = runTest(UnconfinedTestDispatcher()) {
         shadowLocationManager.setProviderEnabled(LocationManager.FUSED_PROVIDER, false)
         shadowLocationManager.setProviderEnabled(LocationManager.GPS_PROVIDER, false)
         shadowLocationManager.setProviderEnabled(LocationManager.NETWORK_PROVIDER, false)
+        val readings = mutableListOf<Location>()
+        val job = launch { locationClient.getLocationUpdates(500L).collect { readings.add(it) } }
+        assertTrue(readings.isEmpty())
+        assertTrue(job.isActive)
 
-        var caughtError: Throwable? = null
-        locationClient.getLocationUpdates(500L)
-            .catch { caughtError = it }
-            .collect {}
+        shadowLocationManager.setProviderEnabled(LocationManager.GPS_PROVIDER, true)
+        context.sendBroadcast(Intent(LocationManager.PROVIDERS_CHANGED_ACTION))
+        ShadowLooper.idleMainLooper()
+        shadowLocationManager.simulateLocation(Location("gps").apply { latitude = 12.0 })
+        ShadowLooper.idleMainLooper()
 
-        assertNotNull(caughtError)
-        assertTrue(caughtError?.message?.contains("No location providers are enabled") == true)
+        assertEquals(1, readings.size)
+        assertEquals(12.0, readings.single().latitude, 0.0001)
+        job.cancel()
+    }
+
+    @Test
+    fun getLocationUpdates_switchesToNetworkWhenGpsDisabled() = runTest(UnconfinedTestDispatcher()) {
+        shadowLocationManager.setProviderEnabled(LocationManager.FUSED_PROVIDER, false)
+        shadowLocationManager.setProviderEnabled(LocationManager.GPS_PROVIDER, true)
+        shadowLocationManager.setProviderEnabled(LocationManager.NETWORK_PROVIDER, true)
+        val readings = mutableListOf<Location>()
+        val job = launch { locationClient.getLocationUpdates(500L).collect { readings.add(it) } }
+
+        shadowLocationManager.setProviderEnabled(LocationManager.GPS_PROVIDER, false)
+        context.sendBroadcast(Intent(LocationManager.PROVIDERS_CHANGED_ACTION))
+        ShadowLooper.idleMainLooper()
+        shadowLocationManager.simulateLocation(Location("network").apply { latitude = 25.0 })
+        ShadowLooper.idleMainLooper()
+
+        assertEquals("network", readings.single().provider)
+        job.cancel()
     }
 
     @Test

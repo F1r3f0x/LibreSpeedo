@@ -26,12 +26,12 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalLocale
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.plabin.librespeedo.data.WidgetSpan
+import com.plabin.librespeedo.ui.ChronometerState
 import kotlinx.coroutines.delay
 
 /**
@@ -63,17 +63,18 @@ fun formatChronometerTime(totalMillis: Long): String {
 @Composable
 fun ChronometerComponent(
     span: WidgetSpan = WidgetSpan.FULL_WIDTH,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    state: ChronometerState = remember { ChronometerState() }
 ) {
-    var isRunning by remember { mutableStateOf(false) }
-    var elapsedMillis by remember { mutableLongStateOf(0L) }
-    var laps by remember { mutableStateOf(listOf<Long>()) }
+    val isRunning = state.isRunning
+    val laps = state.laps
+    var tickingMillis by remember(state) { mutableLongStateOf(state.elapsedMillis) }
+    val elapsedMillis = if (isRunning) tickingMillis else state.elapsedMillis
 
-    LaunchedEffect(isRunning) {
+    LaunchedEffect(state, isRunning) {
         if (isRunning) {
-            val startTime = System.currentTimeMillis() - elapsedMillis
-            while (isRunning) {
-                elapsedMillis = System.currentTimeMillis() - startTime
+            while (true) {
+                tickingMillis = state.elapsedMillis
                 delay(30L)
             }
         }
@@ -125,7 +126,7 @@ fun ChronometerComponent(
         ) {
             // Start / Pause Button
             IconButton(
-                onClick = { isRunning = !isRunning },
+                onClick = state::toggleRunning,
                 colors = IconButtonDefaults.filledIconButtonColors(
                     containerColor = if (isRunning) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.primaryContainer
                 )
@@ -140,7 +141,7 @@ fun ChronometerComponent(
             // Lap Button
             if (isRunning && span != WidgetSpan.HALF) {
                 IconButton(
-                    onClick = { laps = laps + elapsedMillis },
+                    onClick = state::recordLap,
                     colors = IconButtonDefaults.filledTonalIconButtonColors()
                 ) {
                     Icon(
@@ -152,11 +153,7 @@ fun ChronometerComponent(
 
             // Reset Button
             IconButton(
-                onClick = {
-                    isRunning = false
-                    elapsedMillis = 0L
-                    laps = emptyList()
-                },
+                onClick = state::reset,
                 enabled = elapsedMillis > 0L || isRunning,
                 colors = IconButtonDefaults.filledTonalIconButtonColors()
             ) {

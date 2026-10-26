@@ -25,6 +25,12 @@ import com.plabin.librespeedo.data.WidgetSpan
 import com.plabin.librespeedo.location.LocationClient
 import com.plabin.librespeedo.sensors.SensorClient
 import com.plabin.librespeedo.sensors.SensorData
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.runCurrent
+import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -288,6 +294,103 @@ class SpeedometerViewModelTest {
         assertEquals(2, active.size)
         assertEquals(WidgetType.SPEEDOMETER, active[0])
         assertEquals(WidgetType.COMPASS, active[1])
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @Test
+    fun staleSpeed_expiresFallsBackToCompassAndRecovers() = runTest {
+        val locations = MutableSharedFlow<Location>()
+        val sensors = MutableSharedFlow<SensorData>()
+        fakeLocationClient.flow = locations
+        fakeSensorClient.flow = sensors
+        val vm = SpeedometerViewModel(
+            Application(), fakeLocationClient, fakeSensorClient, settingsRepository,
+            backgroundScope, { testScheduler.currentTime }
+        )
+        vm.startTracking()
+        runCurrent()
+        sensors.emit(SensorData(azimuth = 45f))
+        locations.emit(Location("gps").apply { speed = 20f; bearing = 120f })
+        runCurrent()
+        assertTrue(vm.uiState.value.isSpeedAvailable)
+        assertEquals(120f, vm.uiState.value.heading, 0f)
+
+        advanceTimeBy(4_999)
+        runCurrent()
+        assertTrue(vm.uiState.value.isLocationFresh)
+        advanceTimeBy(1)
+        runCurrent()
+        assertFalse(vm.uiState.value.isLocationFresh)
+        assertFalse(vm.uiState.value.isSpeedAvailable)
+        assertEquals(45f, vm.uiState.value.heading, 0f)
+        sensors.emit(SensorData(azimuth = 60f))
+        runCurrent()
+        assertEquals(60f, vm.uiState.value.heading, 0f)
+
+        locations.emit(Location("gps").apply { speed = 10f; bearing = 90f })
+        runCurrent()
+        assertTrue(vm.uiState.value.isLocationFresh)
+        assertEquals(36f, vm.uiState.value.speedKmh, 0.001f)
+        assertEquals(90f, vm.uiState.value.heading, 0f)
+        advanceTimeBy(2_000)
+        locations.emit(Location("gps").apply { speed = 5f; bearing = 90f })
+        runCurrent()
+        // Cross the previous fix's deadline without expiring its replacement.
+        advanceTimeBy(3_000)
+        runCurrent()
+        assertTrue(vm.uiState.value.isLocationFresh)
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @Test
+    fun cachedFix_usesFixTimestampForExpiry() = runTest {
+        val locations = MutableSharedFlow<Location>()
+        fakeLocationClient.flow = locations
+        val vm = SpeedometerViewModel(
+            Application(), fakeLocationClient, fakeSensorClient, settingsRepository,
+            backgroundScope, { 10_000L + testScheduler.currentTime }
+        )
+        vm.startTracking()
+        runCurrent()
+        locations.emit(Location("gps").apply {
+            speed = 20f
+            elapsedRealtimeNanos = 6_000_000_000L // Already four seconds old.
+        })
+        runCurrent()
+        assertTrue(vm.uiState.value.isLocationFresh)
+        advanceTimeBy(1_000)
+        runCurrent()
+        assertFalse(vm.uiState.value.isLocationFresh)
+        locations.emit(Location("gps").apply {
+            speed = 20f
+            elapsedRealtimeNanos = 1_000_000_000L
+        })
+        runCurrent()
+        assertFalse(vm.uiState.value.isSpeedAvailable)
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @Test
+    fun retryAfterLocationError_doesNotDuplicateSensorSubscription() = runTest {
+        var subscriptions = 0
+        fakeLocationClient.flow = flow { throw SecurityException("Permission denied") }
+        fakeSensorClient.flow = flow {
+            subscriptions++
+            awaitCancellation()
+        }
+        val vm = SpeedometerViewModel(
+            Application(), fakeLocationClient, fakeSensorClient, settingsRepository, backgroundScope
+        )
+        vm.startTracking()
+        runCurrent()
+        assertFalse(vm.uiState.value.isTracking)
+        fakeLocationClient.flow = flow { awaitCancellation() }
+        vm.startTracking()
+        runCurrent()
+        vm.startTracking()
+        runCurrent()
+        assertTrue(vm.uiState.value.isTracking)
+        assertEquals(1, subscriptions)
     }
 
     private class FakeLocationClient(context: Context) : LocationClient(context) {

@@ -179,7 +179,7 @@ class SpeedometerScreenTest {
 
     @Test
     fun analogSpeedometerComponent_rendersProperlyAcrossUnitsAndSpans() {
-        val state = SpeedometerUiState(speedKmh = 85.5f)
+        val state = SpeedometerUiState(speedKmh = 85.5f, isLocationFresh = true, isSpeedAvailable = true)
 
         composeTestRule.setContent {
             Column {

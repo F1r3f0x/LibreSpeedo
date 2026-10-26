@@ -19,6 +19,10 @@ package com.plabin.librespeedo
 import android.Manifest
 import android.app.Application
 import androidx.test.core.app.ApplicationProvider
+import androidx.lifecycle.ViewModelProvider
+import com.plabin.librespeedo.ui.SpeedometerViewModel
+import org.junit.Assert.assertSame
+import org.junit.Assert.assertTrue
 import org.junit.Assert.assertNotNull
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -31,6 +35,20 @@ import org.robolectric.Shadows.shadowOf
  */
 @RunWith(RobolectricTestRunner::class)
 class MainActivityTest {
+
+    @Test
+    fun stopwatchState_survivesActivityRecreation() {
+        val controller = Robolectric.buildActivity(MainActivity::class.java).setup()
+        val original = ViewModelProvider(controller.get())[SpeedometerViewModel::class.java].chronometer
+        original.toggleRunning()
+        original.recordLap()
+        controller.recreate()
+        val restored = ViewModelProvider(controller.get())[SpeedometerViewModel::class.java].chronometer
+        assertSame(original, restored)
+        assertTrue(restored.isRunning)
+        assertTrue(restored.laps.isNotEmpty())
+        controller.pause().stop().destroy()
+    }
 
     @Test
     fun mainActivity_launchesSuccessfully_withLocationPermissionGranted() {

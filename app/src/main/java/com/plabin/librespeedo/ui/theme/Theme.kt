@@ -98,12 +98,12 @@ fun LibreSpeedoTheme(
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {
+        isOledTheme -> OledColorScheme
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
             val context = LocalContext.current
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
 
-        darkTheme && isOledTheme -> OledColorScheme
         darkTheme -> DarkColorScheme
         else -> LightColorScheme
     }

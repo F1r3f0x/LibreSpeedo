@@ -94,6 +94,17 @@ class ThemeTest {
     }
 
     @Test
+    fun oledPreference_overridesSystemLightTheme() {
+        var background = Color.Unspecified
+        composeTestRule.setContent {
+            LibreSpeedoTheme(darkTheme = false, isOledTheme = true) {
+                background = MaterialTheme.colorScheme.background
+            }
+        }
+        assertEquals(Color.Black, background)
+    }
+
+    @Test
     fun libreSpeedoTheme_lightTheme_appliesLightColorScheme() {
         var primaryColor: Color = Color.Unspecified
         var surfaceContainerColor: Color = Color.Unspecified

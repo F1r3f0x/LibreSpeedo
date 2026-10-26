@@ -34,6 +34,7 @@ import com.plabin.librespeedo.data.SpeedUnit
 import com.plabin.librespeedo.data.WidgetSpan
 import com.plabin.librespeedo.ui.SpeedometerUiState
 import com.plabin.librespeedo.ui.WidgetType
+import com.plabin.librespeedo.ui.ChronometerState
 
 /**
  * Container card for an individual dashboard widget.
@@ -63,7 +64,8 @@ fun WidgetContainer(
     onToggleSpan: () -> Unit,
     onSpeedUnitChange: (SpeedUnit) -> Unit,
     elevation: Dp,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    chronometerState: ChronometerState = remember { ChronometerState() }
 ) {
     var showSpeedSettings by remember { mutableStateOf(false) }
 
@@ -160,7 +162,7 @@ fun WidgetContainer(
                     WidgetType.ANALOG_SPEEDOMETER -> AnalogSpeedometerComponent(uiState, speedUnit, span = span)
                     WidgetType.COMPASS -> CompassComponent(uiState.heading, span)
                     WidgetType.ANALOG_COMPASS -> AnalogCompassComponent(heading = uiState.heading, span = span)
-                    WidgetType.CHRONOMETER -> ChronometerComponent(span)
+                    WidgetType.CHRONOMETER -> ChronometerComponent(span, state = chronometerState)
                     WidgetType.POSITION -> PositionComponent(uiState, span)
                     WidgetType.DEBUG -> DebugComponent(uiState, span)
                     WidgetType.HELLO_WORLD -> HelloWorldComponent()

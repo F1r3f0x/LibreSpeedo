@@ -96,7 +96,8 @@ fun SpeedometerScreen(
     onWidgetSpanChange: (WidgetType, WidgetSpan) -> Unit,
     onSpeedUnitChange: (SpeedUnit) -> Unit,
     onSettingsClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    chronometerState: ChronometerState = remember { ChronometerState() }
 ) {
     var showAddMenu by remember { mutableStateOf(false) }
     val configuration = LocalConfiguration.current
@@ -176,7 +177,8 @@ fun SpeedometerScreen(
                 uiState = uiState,
                 onRemove = onRemoveWidget,
                 onSpeedUnitChange = onSpeedUnitChange,
-                onWidgetSpanChange = onWidgetSpanChange
+                onWidgetSpanChange = onWidgetSpanChange,
+                chronometerState = chronometerState
             )
         }
     }
@@ -207,7 +209,8 @@ fun ReorderableWidgetGrid(
     uiState: SpeedometerUiState,
     onRemove: (WidgetType) -> Unit,
     onSpeedUnitChange: (SpeedUnit) -> Unit,
-    onWidgetSpanChange: (WidgetType, WidgetSpan) -> Unit
+    onWidgetSpanChange: (WidgetType, WidgetSpan) -> Unit,
+    chronometerState: ChronometerState = remember { ChronometerState() }
 ) {
     var draggedIndex by remember { mutableStateOf<Int?>(null) }
     var draggedOffsetX by remember { mutableStateOf(0f) }
@@ -307,7 +310,8 @@ fun ReorderableWidgetGrid(
                     onRemove = { onRemove(widget) },
                     onToggleSpan = { onWidgetSpanChange(widget, span.next()) },
                     onSpeedUnitChange = onSpeedUnitChange,
-                    elevation = elevation
+                    elevation = elevation,
+                    chronometerState = chronometerState
                 )
             }
         }

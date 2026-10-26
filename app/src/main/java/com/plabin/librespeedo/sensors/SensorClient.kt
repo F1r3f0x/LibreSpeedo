@@ -142,7 +142,7 @@ open class SensorClient(context: Context) {
                             currentAzimuth += 360f
                         }
                     }
-                    trySend(SensorData(currentAccel, currentGyro, currentMag, currentAzimuth))
+                    trySend(SensorData(currentAccel.copyOf(), currentGyro.copyOf(), currentMag.copyOf(), currentAzimuth))
                 }
             }
 
