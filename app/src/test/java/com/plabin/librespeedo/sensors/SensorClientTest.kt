@@ -25,6 +25,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
+import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -82,6 +83,29 @@ class SensorClientTest {
         sensorField.set(event, sensor)
         System.arraycopy(values, 0, event.values, 0, values.size)
         return event
+    }
+
+    @Test
+    fun emittedSensorSnapshots_doNotChangeOnLaterEvents() = runTest(UnconfinedTestDispatcher()) {
+        val emissions = mutableListOf<SensorData>()
+        val job = launch { sensorClient.getSensorUpdates().collect { emissions.add(it) } }
+        val listener = shadowSensorManager.listeners.first()
+        listener.onSensorChanged(createSensorEvent(accelSensor, floatArrayOf(1f, 2f, 9f)))
+        listener.onSensorChanged(createSensorEvent(gyroSensor, floatArrayOf(1f, 2f, 3f)))
+        listener.onSensorChanged(createSensorEvent(magSensor, floatArrayOf(20f, 1f, 40f)))
+        val previous = emissions.last()
+        val accel = previous.accelerometer.copyOf()
+        val gyro = previous.gyroscope.copyOf()
+        val mag = previous.magneticField.copyOf()
+
+        listener.onSensorChanged(createSensorEvent(accelSensor, floatArrayOf(5f, 6f, 7f)))
+        listener.onSensorChanged(createSensorEvent(gyroSensor, floatArrayOf(4f, 5f, 6f)))
+        listener.onSensorChanged(createSensorEvent(magSensor, floatArrayOf(50f, 2f, 60f)))
+
+        assertArrayEquals(accel, previous.accelerometer, 0f)
+        assertArrayEquals(gyro, previous.gyroscope, 0f)
+        assertArrayEquals(mag, previous.magneticField, 0f)
+        job.cancel()
     }
 
     @Test
