@@ -225,8 +225,8 @@ fun AnalogSpeedometerComponent(
                     )
                 }
 
-                // Draw sweeping needle (pointing at animatedNeedleAngle)
-                if (speedAvailable) rotate(degrees = animatedNeedleAngle - 90f, pivot = center) {
+                // The path points up (-90°); add 90° to align it with the dial's angle.
+                if (speedAvailable) rotate(degrees = animatedNeedleAngle + 90f, pivot = center) {
                     val needleLength = arcRadius * 0.85f
                     val needleBaseWidth = when (span) {
                         WidgetSpan.HALF -> 2.5.dp.toPx()
