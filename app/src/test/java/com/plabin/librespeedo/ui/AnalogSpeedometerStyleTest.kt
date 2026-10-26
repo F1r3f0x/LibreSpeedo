@@ -75,10 +75,38 @@ class AnalogSpeedometerStyleTest {
         compose.onNodeWithContentDescription("Preview of Sport style").performScrollTo().assertIsDisplayed()
         compose.onNodeWithText("Minimal").performScrollTo().performClick()
         assertEquals(AnalogSpeedometerStyle.MINIMAL, settings.analogSpeedometerStyle.value)
+        compose.onNodeWithText("Cat").performScrollTo().performClick()
+        assertEquals(AnalogSpeedometerStyle.CAT, settings.analogSpeedometerStyle.value)
+        compose.onNodeWithContentDescription("Preview of Cat style").performScrollTo().assertIsDisplayed()
         compose.onNodeWithText("Done").performClick()
         compose.onNodeWithText("Appearance").assertDoesNotExist()
         // A style change must not turn unavailable speed into a fake live reading.
         compose.onNodeWithContentDescription("Speed unavailable").assertExists()
+    }
+
+    @Test
+    fun catStyle_rendersAllSizesAndUnits() {
+        val state = SpeedometerUiState(speedKmh = 120f, isLocationFresh = true, isSpeedAvailable = true)
+        compose.setContent {
+            LibreSpeedoTheme(darkTheme = true) {
+                Row(Modifier.background(MaterialTheme.colorScheme.surfaceVariant).padding(16.dp)
+                    .testTag("cat-sizes"), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                    WidgetSpan.entries.zip(SpeedUnit.entries).forEach { (span, unit) ->
+                        Box(Modifier.size(240.dp, span.heightDp.dp)) {
+                            AnalogSpeedometerComponent(state, unit, span = span, style = AnalogSpeedometerStyle.CAT)
+                        }
+                    }
+                }
+            }
+        }
+        compose.onAllNodesWithContentDescription("Speed gauge").assertCountEquals(3)
+        compose.onNodeWithText("km/h").assertExists()
+        compose.onNodeWithText("mph").assertExists()
+        compose.onNodeWithText("m/s").assertExists()
+        File("/tmp/librespeedo-cat-sizes.png").outputStream().use {
+            compose.onNodeWithTag("cat-sizes").captureToImage().asAndroidBitmap()
+                .compress(Bitmap.CompressFormat.PNG, 100, it)
+        }
     }
 
     @Test
@@ -88,7 +116,7 @@ class AnalogSpeedometerStyleTest {
         ))
         compose.setContent {
             LibreSpeedoTheme(darkTheme = true) {
-                Column(Modifier.width(900.dp).background(MaterialTheme.colorScheme.background)
+                Column(Modifier.width(980.dp).background(MaterialTheme.colorScheme.background)
                     .padding(24.dp).testTag("style-gallery")) {
                     Text("Analog speedometer", style = MaterialTheme.typography.headlineMedium,
                         color = MaterialTheme.colorScheme.onBackground)
@@ -110,14 +138,15 @@ class AnalogSpeedometerStyleTest {
                 }
             }
         }
-        compose.onAllNodesWithContentDescription("Speed gauge").assertCountEquals(3)
-        compose.onAllNodesWithText("88.0").assertCountEquals(3)
+        compose.onAllNodesWithContentDescription("Speed gauge").assertCountEquals(AnalogSpeedometerStyle.entries.size)
+        compose.onAllNodesWithText("88.0").assertCountEquals(AnalogSpeedometerStyle.entries.size - 1)
+        compose.onNodeWithText("088").assertExists()
         val gallery = compose.onNodeWithTag("style-gallery").captureToImage()
         File("/tmp/librespeedo-analog-styles.png").outputStream().use {
             gallery.asAndroidBitmap().compress(Bitmap.CompressFormat.PNG, 100, it)
         }
         compose.runOnIdle { state.value = state.value.copy(isLocationFresh = false) }
-        compose.onAllNodesWithContentDescription("Speed unavailable").assertCountEquals(3)
-        compose.onAllNodesWithText("—").assertCountEquals(3)
+        compose.onAllNodesWithContentDescription("Speed unavailable").assertCountEquals(AnalogSpeedometerStyle.entries.size)
+        compose.onAllNodesWithText("—").assertCountEquals(AnalogSpeedometerStyle.entries.size)
     }
 }

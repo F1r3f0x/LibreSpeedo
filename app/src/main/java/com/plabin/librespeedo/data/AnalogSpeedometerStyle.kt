@@ -20,5 +20,6 @@ package com.plabin.librespeedo.data
 enum class AnalogSpeedometerStyle(val label: String, val description: String) {
     CLASSIC("Classic", "Teal arc and red needle"),
     SPORT("Sport", "Amber dial, numbered scale and red zone"),
-    MINIMAL("Minimal", "Fine lines and a clean white needle")
+    MINIMAL("Minimal", "Fine lines and a clean white needle"),
+    CAT("Cat", "Playful cat dial, blue rim and paw accent")
 }

@@ -75,11 +75,15 @@ class AnalogSpeedometerNeedleTest {
                         val color = pixels[x, y]
                         // Inspect the inner dial so the Sport red zone and outer ticks
                         // cannot be mistaken for the needle.
-                        val isNeedle = if (preset == AnalogSpeedometerStyle.MINIMAL) {
-                            color.red > 0.75f && color.green > 0.75f && color.blue > 0.75f
-                        } else color.red > 0.75f && color.green < 0.4f && color.blue < 0.4f
-                        val innerDial = hypot(x + 0.5 - pixels.width / 2.0,
-                            y + 0.5 - pixels.height / 2.0) < pixels.width * 0.28
+                        val isNeedle = when (preset) {
+                            AnalogSpeedometerStyle.MINIMAL -> color.red > 0.75f && color.green > 0.75f && color.blue > 0.75f
+                            AnalogSpeedometerStyle.CAT -> color.red > 0.9f && color.green > 0.65f && color.blue < 0.55f
+                            else -> color.red > 0.75f && color.green < 0.4f && color.blue < 0.4f
+                        }
+                        val distance = hypot(x + 0.5 - pixels.width / 2.0, y + 0.5 - pixels.height / 2.0)
+                        val innerDial = if (preset == AnalogSpeedometerStyle.CAT) {
+                            distance > pixels.width * 0.30 && distance < pixels.width * 0.46
+                        } else distance < pixels.width * 0.28
                         if (isNeedle && innerDial) {
                             sumX += x + 0.5
                             sumY += y + 0.5

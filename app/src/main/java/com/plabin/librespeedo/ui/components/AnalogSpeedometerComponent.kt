@@ -129,17 +129,32 @@ fun AnalogSpeedometerComponent(
         WidgetSpan.LARGE -> 175.dp
     }
 
+    if (style == AnalogSpeedometerStyle.CAT) {
+        CatSpeedometerDial(
+            speedAvailable = speedAvailable,
+            displaySpeed = displaySpeed,
+            unit = displayUnitStr,
+            maxScale = maxScale,
+            animatedAngle = animatedNeedleAngle,
+            dialSize = dialSize,
+            modifier = modifier
+        )
+        return
+    }
+
     val isSport = style == AnalogSpeedometerStyle.SPORT
     val isMinimal = style == AnalogSpeedometerStyle.MINIMAL
     val primaryColor = when (style) {
         AnalogSpeedometerStyle.CLASSIC -> MaterialTheme.colorScheme.primary
         AnalogSpeedometerStyle.SPORT -> Color(0xFFFFBE55)
         AnalogSpeedometerStyle.MINIMAL -> Color(0xFFE4F3F5)
+        AnalogSpeedometerStyle.CAT -> Color(0xFF4096B5)
     }
     val secondaryColor = when (style) {
         AnalogSpeedometerStyle.CLASSIC -> MaterialTheme.colorScheme.secondary
         AnalogSpeedometerStyle.SPORT -> Color(0xFFFF8A50)
         AnalogSpeedometerStyle.MINIMAL -> Color(0xFF94AEB4)
+        AnalogSpeedometerStyle.CAT -> Color(0xFFD8E6EC)
     }
     val tertiaryColor = if (isSport) Color(0xFFFF4D4D) else MaterialTheme.colorScheme.tertiary
     val trackBackgroundColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.2f)
