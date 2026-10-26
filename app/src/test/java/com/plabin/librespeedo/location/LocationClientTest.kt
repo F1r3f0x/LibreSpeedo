@@ -18,8 +18,10 @@ package com.plabin.librespeedo.location
 
 import android.content.Intent
 import android.content.Context
+import android.app.Application
 import android.location.Location
 import android.location.LocationManager
+import android.location.LocationRequest
 import androidx.test.core.app.ApplicationProvider
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
@@ -52,9 +54,27 @@ class LocationClientTest {
     @Before
     fun setUp() {
         context = ApplicationProvider.getApplicationContext()
+        // Android grants this merged-manifest signature permission at installation;
+        // Robolectric's older SDKs require it to be granted explicitly.
+        shadowOf(context as Application).grantPermissions(
+            "${context.packageName}.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+        )
         locationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
         shadowLocationManager = shadowOf(locationManager)
         locationClient = LocationClient(context)
+    }
+
+    @Test
+    fun fusedRequest_requiresHighAccuracyAndCleansUp() = runTest(UnconfinedTestDispatcher()) {
+        shadowLocationManager.setProviderEnabled(LocationManager.FUSED_PROVIDER, true)
+        val job = launch { locationClient.getLocationUpdates(500L).collect {} }
+
+        val request = shadowLocationManager.getLocationRequests(LocationManager.FUSED_PROVIDER).single()
+        assertEquals(LocationRequest.QUALITY_HIGH_ACCURACY, request.quality)
+        assertEquals(500L, request.intervalMillis)
+        job.cancel()
+        job.join()
+        assertTrue(shadowLocationManager.getLocationRequests(LocationManager.FUSED_PROVIDER).isEmpty())
     }
 
     @Test
@@ -88,6 +108,7 @@ class LocationClientTest {
     }
 
     @Test
+    @Config(sdk = [26, 34])
     fun getLocationUpdates_whenGpsEnabledAndFusedDisabled_emitsLocationUpdates() = runTest(UnconfinedTestDispatcher()) {
         shadowLocationManager.setProviderEnabled(LocationManager.FUSED_PROVIDER, false)
         shadowLocationManager.setProviderEnabled(LocationManager.GPS_PROVIDER, true)

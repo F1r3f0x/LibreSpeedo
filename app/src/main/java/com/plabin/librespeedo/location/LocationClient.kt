@@ -24,6 +24,7 @@ import android.content.IntentFilter
 import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
+import android.location.LocationRequest
 import android.os.Build
 import android.os.Bundle
 import android.os.Looper
@@ -80,9 +81,20 @@ open class LocationClient(private val context: Context) {
                 locationManager.removeUpdates(locationListener)
                 activeProvider = null
                 if (provider != null) {
-                    locationManager.requestLocationUpdates(
-                        provider, intervalMs, 0f, locationListener, Looper.getMainLooper()
-                    )
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                        // The legacy overload uses balanced accuracy for fused requests,
+                        // which can leave GPS idle even while a speedometer is active.
+                        val request = LocationRequest.Builder(intervalMs)
+                            .setQuality(LocationRequest.QUALITY_HIGH_ACCURACY)
+                            .build()
+                        locationManager.requestLocationUpdates(
+                            provider, request, ContextCompat.getMainExecutor(context), locationListener
+                        )
+                    } else {
+                        locationManager.requestLocationUpdates(
+                            provider, intervalMs, 0f, locationListener, Looper.getMainLooper()
+                        )
+                    }
                     activeProvider = provider
                 }
             } catch (e: SecurityException) {
