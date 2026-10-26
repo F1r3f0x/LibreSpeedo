@@ -17,6 +17,7 @@
 package com.plabin.librespeedo.ui
 
 import android.app.Application
+import android.os.SystemClock
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.plabin.librespeedo.data.SettingsRepository
@@ -24,8 +25,10 @@ import com.plabin.librespeedo.data.WidgetSpan
 import com.plabin.librespeedo.location.LocationClient
 import com.plabin.librespeedo.sensors.SensorClient
 import com.plabin.librespeedo.utils.SpeedConverter
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -74,6 +77,8 @@ enum class WidgetType {
  * @property magZ Filtered geomagnetic field Z-axis flux density in μT.
  * @property compassAzimuth Hardware sensor compass heading in degrees [0, 360).
  * @property gpsBearing GNSS location bearing in degrees [0, 360).
+ * @property isLocationFresh True while the last location fix is less than five seconds old.
+ * @property isSpeedAvailable True if the fresh location fix includes a speed measurement.
  * @property isTracking True if active location/sensor collection is running.
  * @property error Error message if location updates failed, or null if healthy.
  */
@@ -96,6 +101,8 @@ data class SpeedometerUiState(
     val magZ: Float = 0f,
     val compassAzimuth: Float = 0f,
     val gpsBearing: Float = 0f,
+    val isLocationFresh: Boolean = false,
+    val isSpeedAvailable: Boolean = false,
     val isTracking: Boolean = false,
     val error: String? = null
 )
@@ -118,7 +125,8 @@ class SpeedometerViewModel @JvmOverloads constructor(
     private val locationClient: LocationClient = LocationClient(application),
     private val sensorClient: SensorClient = SensorClient(application),
     private val settingsRepository: SettingsRepository = SettingsRepository(application),
-    private val coroutineScope: CoroutineScope? = null
+    private val coroutineScope: CoroutineScope? = null,
+    private val elapsedRealtime: () -> Long = SystemClock::elapsedRealtime
 ) : AndroidViewModel(application) {
 
     private val scope: CoroutineScope
@@ -130,6 +138,20 @@ class SpeedometerViewModel @JvmOverloads constructor(
 
     private var locationJob: Job? = null
     private var sensorJob: Job? = null
+    private var expiryJob: Job? = null
+    private var hasGpsBearing = false
+
+    private fun invalidateLocation() {
+        _uiState.value = _uiState.value.copy(
+            speedKmh = 0f,
+            isLocationFresh = false,
+            isSpeedAvailable = false,
+            heading = _uiState.value.compassAzimuth
+        )
+    }
+
+    private fun useGpsHeading() = _uiState.value.isLocationFresh &&
+        _uiState.value.isSpeedAvailable && _uiState.value.speedKmh > 3f && hasGpsBearing
 
     private val defaultWidgets = listOf(
         WidgetType.SPEEDOMETER,
@@ -225,20 +247,34 @@ class SpeedometerViewModel @JvmOverloads constructor(
 
         locationJob = locationClient.getLocationUpdates(500L)
             .catch { e ->
+                expiryJob?.cancel()
+                invalidateLocation()
                 _uiState.value = _uiState.value.copy(
                     isTracking = false,
                     error = e.message ?: "Unknown error"
                 )
             }
             .onEach { location ->
+                expiryJob?.cancel()
+                val fixTime = if (location.elapsedRealtimeNanos > 0L) {
+                    location.elapsedRealtimeNanos / 1_000_000L
+                } else elapsedRealtime()
+                val remainingMs = 5_000L - (elapsedRealtime() - fixTime).coerceAtLeast(0L)
+                if (remainingMs <= 0L) {
+                    invalidateLocation()
+                    return@onEach
+                }
                 val speedMs = if (location.hasSpeed()) location.speed else 0f
                 val speedKmh = SpeedConverter.msToKmh(speedMs)
                 
                 val newGpsBearing = if (location.hasBearing()) location.bearing else _uiState.value.gpsBearing
-                val activeHeading = if (speedKmh > 3.0f) newGpsBearing else _uiState.value.compassAzimuth
+                hasGpsBearing = location.hasBearing()
+                val activeHeading = if (speedKmh > 3.0f && hasGpsBearing) newGpsBearing else _uiState.value.compassAzimuth
 
                 _uiState.value = _uiState.value.copy(
                     speedKmh = speedKmh,
+                    isLocationFresh = true,
+                    isSpeedAvailable = location.hasSpeed(),
                     latitude = location.latitude,
                     longitude = location.longitude,
                     gpsBearing = newGpsBearing,
@@ -247,13 +283,17 @@ class SpeedometerViewModel @JvmOverloads constructor(
                     accuracy = if (location.hasAccuracy()) location.accuracy.toDouble() else 0.0,
                     provider = location.provider ?: "Unknown"
                 )
+                expiryJob = scope.launch {
+                    delay(remainingMs)
+                    invalidateLocation()
+                }
             }
             .launchIn(scope)
 
         if (sensorJob?.isActive == true) return
         sensorJob = sensorClient.getSensorUpdates()
             .onEach { sensorData ->
-                val activeHeading = if (_uiState.value.speedKmh > 3.0f) _uiState.value.gpsBearing else sensorData.azimuth
+                val activeHeading = if (useGpsHeading()) _uiState.value.gpsBearing else sensorData.azimuth
                 
                 _uiState.value = _uiState.value.copy(
                     accelX = sensorData.accelerometer[0],

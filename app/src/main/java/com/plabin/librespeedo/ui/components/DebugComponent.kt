@@ -67,7 +67,8 @@ fun DebugComponent(
             )
         }
         DebugRow("Provider", uiState.provider, span)
-        DebugRow("Raw Speed", "${uiState.speedKmh} km/h", span)
+        DebugRow("Location", if (uiState.isLocationFresh) "Live" else "Waiting for a location fix", span)
+        DebugRow("Raw Speed", if (uiState.isSpeedAvailable) "${uiState.speedKmh} km/h" else "Unavailable", span)
         DebugRow("Coordinates", "${uiState.latitude}, ${uiState.longitude}", span)
         DebugRow("Heading", "${uiState.heading}°", span)
         DebugRow("Altitude", "${uiState.altitude} m", span)

@@ -81,7 +81,9 @@ fun SpeedComponent(
         verticalArrangement = Arrangement.Center
     ) {
         Text(
-            text = String.format(LocalLocale.current.platformLocale, "%.1f", displaySpeed),
+            text = if (uiState.isLocationFresh && uiState.isSpeedAvailable) {
+                String.format(LocalLocale.current.platformLocale, "%.1f", displaySpeed)
+            } else "—",
             fontSize = speedFontSize,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.primary,
