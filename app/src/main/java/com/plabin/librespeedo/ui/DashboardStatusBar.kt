@@ -16,6 +16,7 @@
  */
 package com.plabin.librespeedo.ui
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -45,8 +46,10 @@ import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.plabin.librespeedo.R
@@ -68,7 +71,17 @@ internal fun DashboardStatusBar(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(Modifier.size(40.dp).clip(CircleShape)) {
+                Image(
+                    painter = painterResource(R.drawable.ic_launcher_foreground),
+                    contentDescription = stringResource(R.string.app_icon_description),
+                    modifier = Modifier.matchParentSize()
+                )
+            }
             StatusIndicator(
                 icon = if (uiState.isLocationFresh) Icons.Default.GpsFixed else Icons.Default.GpsNotFixed,
                 description = stringResource(if (uiState.isLocationFresh) R.string.status_gps_connected else R.string.status_gps_disconnected),

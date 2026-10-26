@@ -106,6 +106,7 @@ class SpeedometerScreenTest {
             DashboardStatusBar(state.value, recording.value, onSettingsClick = {})
         }
 
+        composeTestRule.onNodeWithContentDescription("LibreSpeedo app icon").assertExists()
         composeTestRule.onNodeWithContentDescription("GPS disconnected · waiting for a fix").assertExists()
         composeTestRule.onNodeWithContentDescription("Movement unknown · speed unavailable").assertExists()
         composeTestRule.onNodeWithContentDescription("Not recording a trip").assertExists()
