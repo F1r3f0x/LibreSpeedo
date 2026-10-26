@@ -49,6 +49,8 @@ android {
         unitTests.isIncludeAndroidResources = true
         unitTests.isReturnDefaultValues = true
         unitTests.all { test ->
+            test.maxParallelForks = 1
+            test.jvmArgs("-Xss512k", "-XX:ActiveProcessorCount=2", "-XX:ParallelGCThreads=2", "-XX:CICompilerCount=2")
             test.extensions.configure(org.gradle.testing.jacoco.plugins.JacocoTaskExtension::class.java) {
                 isIncludeNoLocationClasses = true
                 excludes = listOf("jdk.internal.*")

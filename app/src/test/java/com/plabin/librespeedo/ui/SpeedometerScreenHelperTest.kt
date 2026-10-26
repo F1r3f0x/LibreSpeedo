@@ -16,9 +16,11 @@
  */
 package com.plabin.librespeedo.ui
 
+import com.plabin.librespeedo.data.SpeedUnit
 import com.plabin.librespeedo.data.WidgetSpan
 import com.plabin.librespeedo.ui.components.formatChronometerTime
 import com.plabin.librespeedo.ui.components.getCardinalDirection
+import com.plabin.librespeedo.ui.components.getSpeedometerMaxScale
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -33,6 +35,7 @@ class SpeedometerScreenHelperTest {
     @Test
     fun getDefaultWidgetSpan_returnsExpectedSpans() {
         assertEquals(WidgetSpan.FULL_WIDTH, getDefaultWidgetSpan(WidgetType.SPEEDOMETER))
+        assertEquals(WidgetSpan.FULL_WIDTH, getDefaultWidgetSpan(WidgetType.ANALOG_SPEEDOMETER))
         assertEquals(WidgetSpan.HALF, getDefaultWidgetSpan(WidgetType.COMPASS))
         assertEquals(WidgetSpan.FULL_WIDTH, getDefaultWidgetSpan(WidgetType.ANALOG_COMPASS))
         assertEquals(WidgetSpan.FULL_WIDTH, getDefaultWidgetSpan(WidgetType.CHRONOMETER))
@@ -46,8 +49,9 @@ class SpeedometerScreenHelperTest {
      */
     @Test
     fun widgetType_entriesAreValid() {
-        assertEquals(7, WidgetType.entries.size)
+        assertEquals(8, WidgetType.entries.size)
         assertEquals(WidgetType.SPEEDOMETER, WidgetType.valueOf("SPEEDOMETER"))
+        assertEquals(WidgetType.ANALOG_SPEEDOMETER, WidgetType.valueOf("ANALOG_SPEEDOMETER"))
         assertEquals(WidgetType.COMPASS, WidgetType.valueOf("COMPASS"))
         assertEquals(WidgetType.ANALOG_COMPASS, WidgetType.valueOf("ANALOG_COMPASS"))
         assertEquals(WidgetType.CHRONOMETER, WidgetType.valueOf("CHRONOMETER"))
@@ -82,5 +86,21 @@ class SpeedometerScreenHelperTest {
         assertEquals("00:05.42", formatChronometerTime(5420L))
         assertEquals("02:15.50", formatChronometerTime(135500L))
         assertEquals("01:05:30.25", formatChronometerTime(3930250L))
+    }
+
+    /**
+     * Verifies dynamic maximum scale calculation for analog gauges across speed units.
+     */
+    @Test
+    fun getSpeedometerMaxScale_calculatesAppropriateScales() {
+        // Normal speeds within default limits
+        assertEquals(220f, getSpeedometerMaxScale(SpeedUnit.KMH, 50f))
+        assertEquals(140f, getSpeedometerMaxScale(SpeedUnit.MPH, 65f))
+        assertEquals(60f, getSpeedometerMaxScale(SpeedUnit.MS, 20f))
+
+        // High speeds exceeding default limits
+        assertEquals(260f, getSpeedometerMaxScale(SpeedUnit.KMH, 235f))
+        assertEquals(160f, getSpeedometerMaxScale(SpeedUnit.MPH, 145f))
+        assertEquals(70f, getSpeedometerMaxScale(SpeedUnit.MS, 62f))
     }
 }

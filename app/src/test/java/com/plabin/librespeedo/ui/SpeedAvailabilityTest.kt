@@ -17,10 +17,15 @@
 package com.plabin.librespeedo.ui
 
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.foundation.layout.Column
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onNodeWithContentDescription
 import com.plabin.librespeedo.data.SpeedUnit
 import com.plabin.librespeedo.ui.components.SpeedComponent
+import com.plabin.librespeedo.ui.components.AnalogSpeedometerComponent
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -35,15 +40,27 @@ class SpeedAvailabilityTest {
         val state = mutableStateOf(SpeedometerUiState(
             speedKmh = 72f, isLocationFresh = true, isSpeedAvailable = true
         ))
-        compose.setContent { SpeedComponent(state.value, SpeedUnit.KMH) }
-        compose.onNodeWithText("72.0").assertExists()
+        compose.setContent {
+            Column {
+                SpeedComponent(state.value, SpeedUnit.KMH)
+                AnalogSpeedometerComponent(state.value, SpeedUnit.KMH)
+            }
+        }
+        compose.onAllNodesWithText("72.0").assertCountEquals(2)
+        compose.onNodeWithContentDescription("Speed gauge").assertExists()
         compose.runOnIdle { state.value = state.value.copy(isLocationFresh = false) }
-        compose.onNodeWithText("—").assertExists()
+        compose.onAllNodesWithText("—").assertCountEquals(2)
+        compose.onNodeWithContentDescription("Speed unavailable").assertExists()
         compose.onNodeWithText("72.0").assertDoesNotExist()
         compose.runOnIdle {
             state.value = state.value.copy(speedKmh = 0f, isLocationFresh = true, isSpeedAvailable = false)
         }
-        compose.onNodeWithText("—").assertExists()
+        compose.onAllNodesWithText("—").assertCountEquals(2)
         compose.onNodeWithText("0.0").assertDoesNotExist()
+        compose.runOnIdle {
+            state.value = state.value.copy(isSpeedAvailable = true)
+        }
+        compose.onAllNodesWithText("0.0").assertCountEquals(2)
+        compose.onNodeWithContentDescription("Speed gauge").assertExists()
     }
 }
